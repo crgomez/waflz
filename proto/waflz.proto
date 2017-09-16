@@ -20,19 +20,16 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-
 package waflz_pb;
-
-//: --------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 //: ModSecurity SecAction Object
 //: Syntax:        [ACTIONS]
 //: Example Usage: "phase:1,log,deny,id:1"
-//: --------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 message sec_action_t {
-
-        //: ------------------------------------------------------------
-        //: Transformation
-        //: ------------------------------------------------------------
+        // ---------------------------------------
+        // transformation
+        // ---------------------------------------
         enum transformation_type_t {
                 CMDLINE = 1;
                 COMPRESSWHITESPACE = 2;
@@ -53,21 +50,23 @@ message sec_action_t {
                 SHA1 = 17;
                 URLDECODEUNI = 18;
                 UTF8TOUNICODE = 19;
-        }
+                URLDECODE = 20;
+                NORMALISEPATH = 21;
+                REMOVECOMMENTS = 22;
 
-        //: ------------------------------------------------------------
-        //: Action type
-        //: ------------------------------------------------------------
+        }
+        // ---------------------------------------
+        // action type
+        // ---------------------------------------
         enum action_type_t {
                 PASS = 1;
                 BLOCK = 2;
                 DENY = 3;
+                DROP = 4;
         }
-
         // Properties
         optional string id = 1;
         optional string msg = 2;
-
         optional action_type_t action_type = 10;
 
         optional bool capture = 11;
@@ -89,6 +88,7 @@ message sec_action_t {
         optional string rev = 103;
         optional string ver = 104;
         optional string file = 105;
+        optional string expirevar = 106;
 
         optional uint32 severity = 200;
 
@@ -105,22 +105,19 @@ message sec_action_t {
 
         // skipafter ???
         optional string skipafter = 700;
+        optional string allow = 701;
 
 }
-
-
-//: --------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 //: ModSecurity SecRule Object
 //: Syntax:        SecRule  VARIABLES  OPERATOR      [ACTIONS]
 //: Example Usage: SecRule  ARGS       "@rx attack"  "phase:1,log,deny,id:1"
-//: --------------------------------------------------------------------
+//: ----------------------------------------------------------------------------
 message sec_rule_t {
-
-        //: ------------------------------------------------------------
-        //: Variable
-        //: ------------------------------------------------------------
+        // ---------------------------------------
+        // variable
+        // ---------------------------------------
         message variable_t {
-
                 enum type_t {
                         ARGS = 1;
                         ARGS_COMBINED_SIZE = 2;
@@ -159,40 +156,58 @@ message sec_rule_t {
                         MATCHED_VAR = 35;
                         RESPONSE_HEADERS = 36;
                         SESSION = 37;
-                }
+                        GEO = 38;
+                        REQUEST_URI_RAW = 39;
+                        DURATION = 40;
+                        MATCHED_VARS = 41;
+                        MATCHED_VARS_NAMES = 42;
+                        UNIQUE_ID = 43;
+                        IP = 44;
 
+                        // -------------------------------------------
+                        // VDMS EXTENSIONS
+                        // -------------------------------------------
+                        // rule variable is specific to VDMS only and
+                        // not related to mod_security spec. 
+                        // Provides file extensions of the REQUEST_URI
+                        // eg:
+                        //  .json in "/resources/conf/access.json".
+                        // -------------------------------------------
+                        FILE_EXT = 100;
+                }
                 message match_t {
 
                         optional string value = 1;
-                        optional bool is_negated = 10;          /*
-                                                                  This format is wonky as hell.  The is_negated flag here is used to express lines like this:
-
-                                                                    SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|!ARGS:email "[\;\|\`]\W*?\bmail\b" \ "phase:2,rev:'2.1.1',capture,t....
-                                                                                                                    ^^^^^^^^^^^
-                                                                    -- https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#secruleupdatetargetbyid
-
-                                                                  This rule will run the provided regex against request filename, all arg names, and all args EXCEPT 'email'.
-                                                                  So it's not really an 'OR' operation.  Or it is, but it's OR, except for variables of the same type, then it's ANDs?
-
-                                                                 */
+                        // -------------------------------------------
+                        // is_negated flag here used to express lines
+                        // like:
+                        //    SecRule REQUEST_FILENAME|ARGS_NAMES|ARGS|!ARGS:email "[\;\|\`]\W*?\bmail\b" \ "phase:2,rev:'2.1.1',capture,t....
+                        //                                                    ^^^^^^^^^^^
+                        //    -- https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#secruleupdatetargetbyid
+                        //
+                        // rule will run provided regex against
+                        // request filename, all arg names, and all
+                        // args EXCEPT 'email'.
+                        // So not really an 'OR' operation.
+                        // Or it is, but it's OR, except for variables
+                        // of the same type, then it's ANDs?
+                        // -------------------------------------------
+                        optional bool is_negated = 10;
                         optional bool is_regex = 11;
-
                 }
-
                 optional type_t type = 1;
                 repeated match_t match = 2;
                 optional bool is_count = 3;
-
         }
-
-        //: ------------------------------------------------------------
-        //: Operator
-        //: ------------------------------------------------------------
+        // ---------------------------------------
+        // operator
+        // ---------------------------------------
         message operator_t {
-
+                // -----------------------------------------
+                // Auto-generate with:
+                // $ tail -n 300 sailfish/third_party_packages/modsecurity/apache2/re_operators.c | grep '",$' | sed -e 's/"//g' -e 's/,/ = /g' | tr '[:lower:]' '[:upper:]' | sort | awk '{print $0 NR ";"}'
+                // -----------------------------------------
                 enum type_t {
-
-                        // Auto-generate with: $ tail -n 300 modsecurity/apache2/re_operators.c | grep '",$' | sed -e 's/"//g' -e 's/,/ = /g' | tr '[:lower:]' '[:upper:]' | sort | awk '{print $0 NR ";"}'
                         BEGINSWITH = 1;
                         CONTAINS = 2;
                         CONTAINSWORD = 3;
@@ -230,27 +245,30 @@ message sec_rule_t {
                         VERIFYCPF = 35;
                         VERIFYSSN = 36;
                         WITHIN = 37;
-
                 }
 
                 optional type_t type = 1;
                 optional string value = 2;
                 optional bool is_regex = 3;
-                optional bool is_negated = 10;          /*
-                                                          This is_negated is different than the is_negated in the variable.  This one is more strictly what someone would expect:
-
-                                                            SecConnWriteStateLimit 50 "!ipMatch 127.0.0.1"
-                                                                                       ^
-                                                            -- https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#secconnwritestatelimit
-
-                                                          This rule means, do the provided action for IPs that do NOT match 127.0.0.1.
-
-                                                         */
-
-                // NON-STD-ADDITION.  The idea here is to allow someone to provide a pre-split series of values to an operator that accepts multiple values, like PM.
-                //                    rather than requiring the producer to serialized, and the consumer to split.
+                // -----------------------------------------
+                // is_negated is different than is_negated
+                // in the variable.  This one is more
+                // strictly what someone would expect:
+                //   SecConnWriteStateLimit 50 "!ipMatch 127.0.0.1"
+                //                              ^
+                // -- https://github.com/SpiderLabs/ModSecurity/wiki/Reference-Manual#secconnwritestatelimit
+                // rule means, do provided action for IPs
+                // that do NOT match 127.0.0.1.
+                // -----------------------------------------
+                optional bool is_negated = 10;
+                // -----------------------------------------
+                // NON-STD-ADDITION.
+                // allow pre-split series of values operator
+                // that accepts multiple values, like PM.
+                // rather than requiring producer to
+                // serialized, and consumer to split.
+                // -----------------------------------------
                 repeated string values = 4;
-
         }
 
         // Rule bits
@@ -258,9 +276,17 @@ message sec_rule_t {
         optional operator_t operator = 1001;
         optional sec_action_t action = 1002;
 
+        // -----------------------------------------
         // Chained rules
-        // NOTE: whilst this does make it possible to create trees of rules, this is not supported
-        //       There should be a single top-level rule, with a flat sequence of chained_rule entries under it
+        // -----------------------------------------
+        // NOTE:
+        // whilst this does make it possible to
+        // create trees of rules, this is not
+        // supported.
+        // There should be a single top-level rule,
+        // with a flat sequence of chained_rule
+        // entries under it
+        // -----------------------------------------
         repeated sec_rule_t chained_rule = 2000;
 
         // Ordering
@@ -269,47 +295,46 @@ message sec_rule_t {
         // Hidden
         optional bool hidden = 4000;
 
+        // Properties
+        optional string id = 5000;
+        optional string name = 5001;
 }
 
+message directive_t {
+        // Directives who needs ordering
+        optional string marker = 1;
+        optional sec_rule_t sec_rule = 2;
+        optional sec_action_t sec_action = 3;
+}
 //: ----------------------------------------------------------------------------
 //: ModSecurity Config Object
 //: ----------------------------------------------------------------------------
 message sec_config_t {
-
-        //: ------------------------------------------------------------
-        //: Marker
-        //: ------------------------------------------------------------
-        message marker_t {
-                optional string label = 1;
-                optional uint32 mark = 2;
-        }
-
-        //: ------------------------------------------------------------
-        //: Limit Action type
-        //: ------------------------------------------------------------
+        // ---------------------------------------
+        // limit action
+        // ---------------------------------------
         enum limit_action_type_t {
                 REJECT = 1;
                 PROCESS_PARTIAL = 2;
         }
-
-        //: ------------------------------------------------------------
-        //: Engine type
-        //: ------------------------------------------------------------
+        // ---------------------------------------
+        // engine
+        // ---------------------------------------
         enum engine_type_t {
                 ON = 1;
                 OFF = 2;
                 DETECTION_ONLY = 3;
         }
-
-        // -------------------------------------------------
-        // Properties...
-        // -------------------------------------------------
+        // ---------------------------------------
+        // properties...
+        // ---------------------------------------
         optional engine_type_t rule_engine = 1;
         optional uint32 argument_separator = 2;
         optional string component_signature = 3;
         optional uint32 cookie_format = 4;
         optional string data_dir = 5;
         optional string tmp_dir = 6;
+        optional string geo_lookup_db = 7;
 
         optional bool request_body_access = 20;
         optional uint32 request_body_in_memory_limit = 21;
@@ -320,7 +345,7 @@ message sec_config_t {
         optional bool response_body_access = 30;
         optional uint32 response_body_limit = 32;
         optional limit_action_type_t response_body_limit_action = 33;
-        repeated string response_body_mime_type = 35;
+        optional string response_body_mime_type = 35;
 
         optional uint32 pcre_match_limit = 100;
         optional uint32 pcre_match_limit_recursion = 101;
@@ -331,13 +356,8 @@ message sec_config_t {
 
         // Actions
         optional sec_action_t default_action = 1000;
-        repeated sec_action_t action = 1001;
 
-        // Markers
-        repeated marker_t marker = 2000;
-
-        // Rules
-        repeated sec_rule_t sec_rule = 3000;
-
-
+        // Directives
+        repeated directive_t directive = 3001;
+        repeated uint32 rule_remove_by_id = 3002;
 }

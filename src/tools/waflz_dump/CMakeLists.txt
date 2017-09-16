@@ -39,9 +39,10 @@ add_custom_target(fake ALL DEPENDS _config.h)
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}
-  ../../core/ndebug
-  ../../core/waflz
-  ../../core/util
+  ${CMAKE_SOURCE_DIR}/include
+  ${CMAKE_SOURCE_DIR}/src/core
+  ${CMAKE_SOURCE_DIR}/src/core/support
+  ${CMAKE_SOURCE_DIR}/src/core/waflz
 )
 
 #add_definitions(-std=c++0x)

@@ -33,19 +33,44 @@
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/prettywriter.h"
+#include "rapidjson/error/error.h"
+#include "rapidjson/error/en.h"
+
+// for bytes
+#include "base64/base64.h"
 
 //: ----------------------------------------------------------------------------
 //: Macros
 //: ----------------------------------------------------------------------------
+#ifndef JSPB_TRACE
+#define JSPB_TRACE(...) \
+  if(s_trace) { \
+    fprintf(stdout, "%s:%s.%d: ", __FILE__, __FUNCTION__, __LINE__); \
+    fprintf(stdout, __VA_ARGS__); \
+    fflush(stdout); \
+  }
+#endif
+
 #define JSPB_ERR_LEN 4096
-#define JSPB_PERROR(...) snprintf(g_err_msg, JSPB_ERR_LEN, __VA_ARGS__)
+#define JSPB_PERROR(...) do { \
+  if(s_trace) { \
+    fprintf(stdout, "%s:%s.%d: ERROR ", __FILE__, __FUNCTION__, __LINE__); \
+    fprintf(stdout, __VA_ARGS__);               \
+    fprintf(stdout, "\n");\
+    fflush(stdout); \
+  }\
+  snprintf(s_err_msg, JSPB_ERR_LEN, "%s.%s.%d: ",__FILE__,__FUNCTION__,__LINE__); \
+  int _len = strlen(s_err_msg); \
+  snprintf(s_err_msg + _len, JSPB_ERR_LEN - _len, __VA_ARGS__); \
+}while(0)
+
+namespace ns_jspb {
 
 //: ----------------------------------------------------------------------------
 //: Globals
 //: ----------------------------------------------------------------------------
-static char g_err_msg[JSPB_ERR_LEN];
-
-namespace ns_jspb {
+static bool s_trace;
+static char s_err_msg[JSPB_ERR_LEN];
 
 //: ----------------------------------------------------------------------------
 //: \details: Set a single field value in the json object.
@@ -147,8 +172,14 @@ static int32_t convert_single_field(rapidjson::Value &ao_val,
         }
         case google::protobuf::FieldDescriptor::TYPE_BYTES:
         {
-                JSPB_PERROR("binary type not supported for field: '%s'", a_field->full_name().c_str());
-                return JSPB_ERROR;
+                std::string s = a_ref->GetString(a_msg, a_field);
+                std::string base64_str = base64_encode((unsigned char*)s.c_str(), s.length());
+                ao_val.AddMember(rapidjson::Value(a_field->name().c_str(),
+                                 a_alx).Move(),
+                                 rapidjson::Value(base64_str.c_str(),
+                                 a_alx).Move(),
+                                 a_alx);
+                break;
         }
         case google::protobuf::FieldDescriptor::TYPE_ENUM:
         {
@@ -398,8 +429,12 @@ static int32_t convert_repeated_field(rapidjson::Value &ao_val,
         }
         case google::protobuf::FieldDescriptor::TYPE_BYTES:
         {
-                JSPB_PERROR("binary type not supported for field '%s'", a_field->full_name().c_str());
-                return JSPB_ERROR;
+                l_s = convert_repeated_field_str(ao_val,
+                                                 a_alx,
+                                                 a_ref,
+                                                 &google::protobuf::Reflection::GetRepeatedString,
+                                                 a_field,
+                                                 a_msg);
         }
         case google::protobuf::FieldDescriptor::TYPE_ENUM:
         {
@@ -440,9 +475,7 @@ static int32_t update_field(google::protobuf::Message& ao_msg,
                             F2 a_accessor,
                             F3 a_checker)
 {
-        // ---------------------------------------------------------------------
-        // TODO FIX!!!
-        // ---------------------------------------------------------------------
+        JSPB_TRACE("update_field\n");
         if (!((a_val.*a_checker)()))
         {
                 JSPB_PERROR("expecting type: %s for field: '%s'", a_field->name().c_str(), a_field->full_name().c_str());
@@ -468,15 +501,11 @@ static int32_t update_enum_field(google::protobuf::Message& ao_msg,
                                  F1 a_updater,
                                  const rapidjson::Value &a_val)
 {
-        // ---------------------------------------------------------------------
-        // TODO FIX!!!
-        // ---------------------------------------------------------------------
         if (!a_val.IsString())
         {
                 JSPB_PERROR("expecting string (enum) for field '%s'", a_field->full_name().c_str());
                 return JSPB_ERROR;
         }
-
         const google::protobuf::EnumValueDescriptor* enumValueDescriptor = a_des->FindEnumValueByName(a_val.GetString());
         if (0 == enumValueDescriptor)
         {
@@ -501,11 +530,13 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
                                    const google::protobuf::FieldDescriptor* a_field,
                                    const rapidjson::Value &a_val)
 {
+        JSPB_TRACE("update_single_field\n");
         int32_t l_s = JSPB_OK;
         switch (a_field->type())
         {
         case google::protobuf::FieldDescriptor::TYPE_DOUBLE:
         {
+                JSPB_TRACE("case: double\n");
                 l_s = update_field(ao_msg,
                                    a_ref,
                                    a_field,
@@ -517,6 +548,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_FLOAT:
         {
+                JSPB_TRACE("case: float\n");
                 update_field(ao_msg,
                              a_ref,
                              a_field,
@@ -530,6 +562,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_SFIXED64:
         case google::protobuf::FieldDescriptor::TYPE_SINT64:
         {
+                JSPB_TRACE("case: int64\n");
                 update_field(ao_msg,
                              a_ref,
                              a_field,
@@ -542,6 +575,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_UINT64:
         case google::protobuf::FieldDescriptor::TYPE_FIXED64:
         {
+                JSPB_TRACE("case: uint64\n");
                 update_field(ao_msg,
                              a_ref,
                              a_field,
@@ -555,6 +589,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_SFIXED32:
         case google::protobuf::FieldDescriptor::TYPE_SINT32:
         {
+                JSPB_TRACE("case: int32\n");
                 update_field(ao_msg,
                              a_ref,
                              a_field,
@@ -567,6 +602,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         case google::protobuf::FieldDescriptor::TYPE_FIXED32:
         case google::protobuf::FieldDescriptor::TYPE_UINT32:
         {
+                JSPB_TRACE("case: uint32\n");
                 update_field(ao_msg,
                              a_ref,
                              a_field,
@@ -578,6 +614,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_BOOL:
         {
+                JSPB_TRACE("case: bool\n");
                 update_field(ao_msg,
                              a_ref,
                              a_field,
@@ -589,6 +626,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_STRING:
         {
+                JSPB_TRACE("case: string\n");
                 update_field(ao_msg,
                              a_ref,
                              a_field,
@@ -600,22 +638,26 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_GROUP:
         {
+                JSPB_TRACE("case: group\n");
                 JSPB_PERROR("group type not supported for field '%s'", a_field->full_name().c_str());
                 return JSPB_ERROR;
         }
         case google::protobuf::FieldDescriptor::TYPE_MESSAGE:
         {
+                JSPB_TRACE("case: message\n");
                 l_s = update_from_json(*(a_ref->MutableMessage(&ao_msg, a_field)),
                                        a_val);
                 break;
         }
         case google::protobuf::FieldDescriptor::TYPE_BYTES:
         {
+                JSPB_TRACE("case: bytes\n");
                 JSPB_PERROR("binary type not supported for field '%s'", a_field->full_name().c_str());
                 return JSPB_ERROR;
         }
         case google::protobuf::FieldDescriptor::TYPE_ENUM:
         {
+                JSPB_TRACE("case: enum\n");
                 l_s = update_enum_field(ao_msg,
                                         a_ref,
                                         a_des,
@@ -626,6 +668,7 @@ static int32_t update_single_field(google::protobuf::Message& ao_msg,
         }
         default:
         {
+                JSPB_TRACE("case: default\n");
                 JSPB_PERROR("unknown type in field: '%s': %d", a_field->full_name().c_str(), a_field->type());
                 return JSPB_ERROR;
         }
@@ -687,6 +730,7 @@ static int32_t update_repeated_message_field(google::protobuf::Message& ao_msg,
                                              const google::protobuf::FieldDescriptor* a_field,
                                              const rapidjson::Value &a_val)
 {
+        JSPB_TRACE("update_repeated_message_field ...\n");
         for(rapidjson::Value::ConstValueIterator i_m = a_val.Begin();
             i_m != a_val.End();
             ++i_m)
@@ -749,11 +793,13 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
                                      const google::protobuf::FieldDescriptor* a_field,
                                      const rapidjson::Value &a_val)
 {
+        JSPB_TRACE("update_repeated_field ...\n");
         int32_t l_s;
         switch (a_field->type())
         {
         case google::protobuf::FieldDescriptor::TYPE_DOUBLE:
         {
+                JSPB_TRACE("case: double\n");
                 l_s = update_repeated_field(ao_msg,
                                             a_ref,
                                             a_field,
@@ -853,6 +899,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_MESSAGE:
         {
+                JSPB_TRACE("case: message\n");
                 l_s = update_repeated_message_field(ao_msg,
                                                     a_ref,
                                                     a_field,
@@ -866,6 +913,7 @@ static int32_t update_repeated_field(google::protobuf::Message& ao_msg,
         }
         case google::protobuf::FieldDescriptor::TYPE_ENUM:
         {
+                JSPB_TRACE("case: enum\n");
                 l_s = update_repeated_enum_field(ao_msg,
                                                  a_ref,
                                                  a_des,
@@ -1031,39 +1079,106 @@ done:
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const rapidjson::Value &a_val)
 {
-        if(a_val.IsObject())
-        {
-                JSPB_PERROR("error json not an object");
-                return JSPB_ERROR;
-        }
+        JSPB_TRACE("update_from_json ...\n");
+        //if(a_val.IsObject())
+        //{
+        //        JSPB_PERROR("error json not an object");
+        //        return JSPB_ERROR;
+        //}
         // Walk through the json members and insert them into the protobuf.
         const google::protobuf::Reflection* l_ref = ao_msg.GetReflection();
         const google::protobuf::Descriptor* l_des = ao_msg.GetDescriptor();
-
         // ---------------------------------------
         // Iterate over objects...
         // ---------------------------------------
+        JSPB_TRACE("iterating over members\n");
         for (rapidjson::Value::ConstMemberIterator i_m = a_val.MemberBegin();
              i_m != a_val.MemberEnd();
              ++i_m)
         {
                 const char *i_k = i_m->name.GetString();
+                JSPB_TRACE("member: %s\n", i_k);
+                // -------------------------------
+                // "user-agent" hack...
+                // TODO fix in json with "user_agent"
+                // -------------------------------
+                if(strncmp(i_k, "user-agent", i_m->name.GetStringLength()) == 0)
+                {
+                        i_k = "user_agent";
+                }
                 const google::protobuf::FieldDescriptor* l_f = l_des->FindFieldByName(i_k);
                 if (0 == l_f)
                 {
                         JSPB_PERROR("json field '%s' not found in message", i_k);
                         return JSPB_ERROR;
                 }
-
+                // ---------------------------------------------------
+                // TODO REMOVE!!!
+                // response_headers hack
+                // ---------------------------------------------------
+                // original looks like:
+                // ...
+                // "response_headers": {
+                //   "Custom Header A": "Value 1"
+                // }
+                // ...
+                // convert to
+                // ...
+                // "response_headers": [
+                //   {"key": "Custom Header A", "value": "Value 1"}
+                // ]
+                // ...
+                // ---------------------------------------------------
+                if((strcmp(i_k, "response_headers") == 0) &&
+                   (a_val.HasMember("response_headers") &&
+                    a_val["response_headers"].IsObject()))
+                {
+                        JSPB_TRACE("performing response_headers hack :(\n");
+                        // Create object in place
+                        rapidjson::Document l_js_doc;
+                        l_js_doc.SetObject();
+                        rapidjson::Value l_js_array(rapidjson::kArrayType);
+                        rapidjson::Document::AllocatorType& l_js_allocator = l_js_doc.GetAllocator();
+                        for (rapidjson::Value::ConstMemberIterator i_m = a_val["response_headers"].MemberBegin();
+                             i_m != a_val["response_headers"].MemberEnd();
+                             ++i_m)
+                        {
+                                rapidjson::Value l_obj;
+                                l_obj.SetObject();
+                                l_obj.AddMember("key",
+                                                rapidjson::Value(i_m->name.GetString(), l_js_allocator).Move(),
+                                                l_js_allocator);
+                                l_obj.AddMember("value",
+                                                rapidjson::Value(i_m->value.GetString(), l_js_allocator).Move(),
+                                                l_js_allocator);
+                                l_js_array.PushBack(l_obj, l_js_allocator);
+                        }
+                        l_js_doc.AddMember("response_headers", l_js_array, l_js_allocator);
+                        JSPB_TRACE("response_headers hack: update repeated field\n");
+                        // the json array will completely replace this field
+                        l_ref->ClearField(&ao_msg, l_f);
+                        int32_t l_s = JSPB_OK;
+                        JSPB_TRACE("update_repeated_field\n");
+                        l_s = update_repeated_field(ao_msg,
+                                                    l_ref,
+                                                    l_des,
+                                                    l_f,
+                                                    l_js_doc["response_headers"]);
+                        JSPB_TRACE("response_headers hack: update repeated field -done\n");
+                        if(l_s != JSPB_OK)
+                        {
+                                return JSPB_ERROR;
+                        }
+                        continue;
+                }
                 //const rapidjson::GenericValue<rapidjson::UTF8<> >::ConstObject &i_v = i_m->value.GetObject();
-
                 const rapidjson::Value &i_v = i_m->value;
-
                 switch (l_f->label())
                 {
                 case google::protobuf::FieldDescriptor::LABEL_OPTIONAL:
                 case google::protobuf::FieldDescriptor::LABEL_REQUIRED:
                 {
+                        JSPB_TRACE("update_single_field\n");
                         int32_t l_s = JSPB_OK;
                         l_s = update_single_field(ao_msg,
                                                   l_ref,
@@ -1086,6 +1201,7 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
                         }
                         // the json array will completely replace this field
                         l_ref->ClearField(&ao_msg, l_f);
+                        JSPB_TRACE("update_repeated_field\n");
                         int32_t l_s = JSPB_OK;
                         l_s = update_repeated_field(ao_msg,
                                                     l_ref,
@@ -1118,7 +1234,8 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 int32_t update_from_json(google::protobuf::Message& ao_msg,
                          const rapidjson::Document& a_js)
 {
-        if(a_js.IsObject())
+        JSPB_TRACE("update_from_json ...\n");
+        if(!a_js.IsObject())
         {
                 JSPB_PERROR("error json not an object");
                 return JSPB_ERROR;
@@ -1126,31 +1243,40 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
         // Walk through the json members and insert them into the protobuf.
         const google::protobuf::Reflection* l_ref = ao_msg.GetReflection();
         const google::protobuf::Descriptor* l_des = ao_msg.GetDescriptor();
-
         // ---------------------------------------
         // Iterate over objects...
         // ---------------------------------------
+        JSPB_TRACE("iterating over members\n");
         for (rapidjson::Value::ConstMemberIterator i_m = a_js.MemberBegin();
              i_m != a_js.MemberEnd();
              ++i_m)
         {
                 const char *i_k = i_m->name.GetString();
+                JSPB_TRACE("member: %s\n", i_k);
+                if(i_m->value.IsNull())
+                {
+                        JSPB_TRACE("member: %s NULL -skipping\n", i_k);
+                        continue;
+                }
                 const google::protobuf::FieldDescriptor* l_f = l_des->FindFieldByName(i_k);
                 if (0 == l_f)
                 {
                         JSPB_PERROR("json field '%s' not found in message", i_k);
                         return JSPB_ERROR;
                 }
-
                 //const rapidjson::GenericValue<rapidjson::UTF8<> >::ConstObject &i_v = i_m->value.GetObject();
-
                 const rapidjson::Value &i_v = i_m->value;
-
                 switch (l_f->label())
                 {
                 case google::protobuf::FieldDescriptor::LABEL_OPTIONAL:
+                {
+                        JSPB_TRACE("case: optional\n");
+                        // fall thru
+                }
                 case google::protobuf::FieldDescriptor::LABEL_REQUIRED:
                 {
+                        JSPB_TRACE("case: required\n");
+                        JSPB_TRACE("update_single_field\n");
                         int32_t l_s = JSPB_OK;
                         l_s = update_single_field(ao_msg,
                                                   l_ref,
@@ -1165,6 +1291,7 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
                 }
                 case google::protobuf::FieldDescriptor::LABEL_REPEATED:
                 {
+                        JSPB_TRACE("case: repeated\n");
                         // make sure the json value is an array
                         if(!i_m->value.IsArray())
                         {
@@ -1173,7 +1300,7 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
                         }
                         // the json array will completely replace this field
                         l_ref->ClearField(&ao_msg, l_f);
-
+                        JSPB_TRACE("update_repeated_field\n");
                         int32_t l_s = JSPB_OK;
                         l_s = update_repeated_field(ao_msg,
                                                     l_ref,
@@ -1209,12 +1336,31 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 {
         // put on the heap...
         rapidjson::Document *l_js = new rapidjson::Document();
-        l_js->Parse(a_buf, a_len);
-        if(!l_js->IsObject())
+        JSPB_TRACE("json parse ...\n");
+        rapidjson::ParseResult l_ok;
+        l_ok = l_js->Parse(a_buf, a_len);
+        if (!l_ok)
         {
-                JSPB_PERROR("error parsing json");
+                JSPB_PERROR("JSON parse error: %s (%d)\n", rapidjson::GetParseError_En(l_ok.Code()), (int)l_ok.Offset());
+                if(l_js)
+                {
+                        delete l_js;
+                        l_js = NULL;
+                }
                 return JSPB_ERROR;
         }
+        if(!l_js->IsObject())
+        {
+                rapidjson::ParseErrorCode l_code = l_js->GetParseError();
+                JSPB_PERROR("error parsing json Not an object -code: %d -type: %d", l_code, l_js->GetType());
+                if(l_js)
+                {
+                        delete l_js;
+                        l_js = NULL;
+                }
+                return JSPB_ERROR;
+        }
+        JSPB_TRACE("json parse ok\n");
         int32_t l_s;
         l_s = update_from_json(ao_msg, *l_js);
         if(l_js)
@@ -1244,7 +1390,16 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 //: ----------------------------------------------------------------------------
 const char * get_err_msg(void)
 {
-        return g_err_msg;
+        return s_err_msg;
+}
+
+//: ----------------------------------------------------------------------------
+//: \details: TODO
+//: \param:   TODO
+//: ----------------------------------------------------------------------------
+void set_trace(bool a_val)
+{
+        s_trace = a_val;
 }
 
 } // namespace

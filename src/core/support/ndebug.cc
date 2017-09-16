@@ -1,11 +1,11 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
+//: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
 //: \file:    ndebug.cc
 //: \details: TODO
 //: \author:  Reed P. Morrison
-//: \date:    09/30/2015
+//: \date:    02/07/2014
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -25,10 +25,13 @@
 //: Includes
 //: ----------------------------------------------------------------------------
 #include "ndebug.h"
+#include <string>
 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+#include <stddef.h>
 
 #include <execinfo.h> // support backtrace
 #include <cxxabi.h>   // support demangled symbols
@@ -71,9 +74,9 @@ static int get_stack_string(char* ao_stack_str)
                 if ((i != 0) && (i != 1))
                 {
                         if (i == 2)
-                                snprintf(frame_str, sizeof(frame_str), "%sFrm[%lu]:%s", ANSI_COLOR_FG_RED, i - 2, ANSI_COLOR_FG_GREEN);
+                                snprintf(frame_str, sizeof(frame_str), "%sFrm[%zd]:%s", ANSI_COLOR_FG_RED, i - 2, ANSI_COLOR_FG_GREEN);
                         else
-                                snprintf(frame_str, sizeof(frame_str), "%sFrm[%lu]:%s", ANSI_COLOR_FG_BLUE, i - 2, ANSI_COLOR_FG_GREEN);
+                                snprintf(frame_str, sizeof(frame_str), "%sFrm[%zd]:%s", ANSI_COLOR_FG_BLUE, i - 2, ANSI_COLOR_FG_GREEN);
 
                         strcat(ao_stack_str, frame_str);
 
@@ -189,13 +192,5 @@ void mem_display(const uint8_t* a_mem_buf, uint32_t a_length)
         }
 
 }
-
-#if 0
-getrusage (RUSAGE_SELF, &test_rusage_start);
-test_time_start = timer_now ();
-core_loop ();
-test_time_stop = timer_now ();
-getrusage (RUSAGE_SELF, &test_rusage_stop);
-#endif
 
 }

@@ -118,6 +118,12 @@ int32_t update_from_json(google::protobuf::Message& ao_msg,
 //: ----------------------------------------------------------------------------
 const char * get_err_msg(void);
 
+//: ----------------------------------------------------------------------------
+//: \details: Get last error
+//: \return:  Last error reason
+//: ----------------------------------------------------------------------------
+void set_trace(bool a_val);
+
 } // namespace ns_jspb
 
 #endif // __JSON_PROTOBUF_H__

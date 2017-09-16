@@ -25,33 +25,28 @@ cmake_minimum_required(VERSION 2.6.0)
 
 # include paths
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/ext
-
     ${CMAKE_CURRENT_BINARY_DIR}/../../proto
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/ndebug
-    ${CMAKE_CURRENT_SOURCE_DIR}/util
     ${CMAKE_CURRENT_SOURCE_DIR}/jspb
+    ${CMAKE_CURRENT_SOURCE_DIR}/support
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 # Source files
 SET(SRCS
-
     ${CMAKE_BINARY_DIR}/proto/waflz.pb.cc
-
-    ./ndebug/ndebug.cc
-
+    ${CMAKE_SOURCE_DIR}/ext/base64/base64.cc
     ./jspb/jspb.cc
-
-    ./util/util.cc
-    ./util/uri.cc
-    ./util/http_request.cc
-    
+    ./support/ndebug.cc
+    ./support/string_util.cc
+    ./support/file_util.cc
+    ./support/util.cc
+    ./support/uri.cc
+    ./support/http_request.cc
     ./waflz/wafl.cc
     ./waflz/wafl_parser.cc
     ./waflz/wafl_filter.cc
-
 )
 
 # append -Wno-effc++ to the protobuf-generated source files.  As appended, overrides previous -Weffc++
@@ -60,14 +55,12 @@ set_property(SOURCE ${CMAKE_BINARY_DIR}/proto/waflz.pb.cc APPEND_STRING PROPERTY
 # Headers
 SET(HDRS
     ${CMAKE_BINARY_DIR}/proto/waflz.pb.h
-
-    ./ndebug/ndebug.h
-
     ./jspb/jspb.h
-
-    ./util/util.h
-    ./util/http_request.h
-
+    ./support/ndebug.h
+    ./support/string_util.h
+    ./support/file_util.h
+    ./support/util.h
+    ./support/http_request.h
     ./waflz/wafl.h
     ./waflz/wafl_parser.h
     ./waflz/wafl_filter.h

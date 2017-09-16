@@ -1,11 +1,11 @@
 //: ----------------------------------------------------------------------------
-//: Copyright (C) 2015 Verizon.  All Rights Reserved.
+//: Copyright (C) 2016 Verizon.  All Rights Reserved.
 //: All Rights Reserved
 //:
 //: \file:    ndebug.h
 //: \details: TODO
 //: \author:  Reed P. Morrison
-//: \date:    09/30/2015
+//: \date:    04/15/2016
 //:
 //:   Licensed under the Apache License, Version 2.0 (the "License");
 //:   you may not use this file except in compliance with the License.
@@ -20,29 +20,17 @@
 //:   limitations under the License.
 //:
 //: ----------------------------------------------------------------------------
-#ifndef NDEBUG_H_
-#define NDEBUG_H_
+#ifndef _NDEBUG_H
+#define _NDEBUG_H
 
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include <string>
 #include <stdint.h>
 #include <stdio.h>
 
 // For POD check
 #include <stdarg.h>
-
-//: ----------------------------------------------------------------------------
-//: Constants
-//: ----------------------------------------------------------------------------
-#ifndef STATUS_ERROR
-#define STATUS_ERROR -1
-#endif
-
-#ifndef STATUS_OK
-#define STATUS_OK 0
-#endif
 
 //: ----------------------------------------------------------------------------
 //: ANSI Color Code Strings
@@ -77,58 +65,87 @@
 #define NDBG_MAX_BACKTRACE_TAG_SIZE 8192
 
 //: ----------------------------------------------------------------------------
-//: Trace macros
+//: debug macros
 //: ----------------------------------------------------------------------------
+#ifndef NDBG_OUTPUT
 #define NDBG_OUTPUT(...) \
         do { \
                 fprintf(stdout, __VA_ARGS__); \
                 fflush(stdout); \
         } while(0)
+#endif
 
+#ifndef NDBG_PRINT
 #define NDBG_PRINT(...) \
         do { \
                 fprintf(stdout, "%s:%s.%d: ", __FILE__, __FUNCTION__, __LINE__); \
                 fprintf(stdout, __VA_ARGS__);               \
                 fflush(stdout); \
         } while(0)
+#endif
 
+#ifndef NDBG_HEXDUMP
 #define NDBG_HEXDUMP(buffer, len) \
         do { \
                 mem_display(buffer, len); \
                 fflush(stdout); \
         } while(0)
+#endif
 
+#ifndef NDBG_PRINT_BT
 #define NDBG_PRINT_BT() print_bt(__FILE__,__FUNCTION__,__LINE__)
+#endif
 
+//: ----------------------------------------------------------------------------
+//: POD
+//: ----------------------------------------------------------------------------
+#ifndef ENSURE_POD
+#define ENSURE_POD(class_name)\
+        void __do_check_pod_##class_name() const \
+        { \
+                if(0) { \
+                        static_assert(std::is_pod <class_name>::value, #class_name "must be POD"); \
+                }\
+        }
+#endif
+
+#ifndef CHECK_FOR_POD
 #define CHECK_FOR_POD(_class) \
     if(0){ \
         _class var; \
         check_for_pod(1, var); \
     }
+#endif
 
 //: ----------------------------------------------------------------------------
 //: Macros
 //: ----------------------------------------------------------------------------
+#ifndef DISALLOW_ASSIGN
 #define DISALLOW_ASSIGN(class_name)\
     class_name& operator=(const class_name &);
+#endif
 
+#ifndef DISALLOW_COPY
 #define DISALLOW_COPY(class_name)\
     class_name(const class_name &);
+#endif
 
+#ifndef DISALLOW_COPY_AND_ASSIGN
 #define DISALLOW_COPY_AND_ASSIGN(class_name)\
     DISALLOW_COPY(class_name)\
     DISALLOW_ASSIGN(class_name)
+#endif
 
+#ifndef DISALLOW_DEFAULT_CTOR
 #define DISALLOW_DEFAULT_CTOR(class_name)\
     class_name();
+#endif
 
+#ifndef UNUSED
 #define UNUSED(x) ( (void)(x) )
+#endif
 
-//: ----------------------------------------------------------------------------
-//: Legacy Macros...
-//: TODO REMOVE
-//: ----------------------------------------------------------------------------
-#if 0
+#ifndef FATAL
 #define FATAL(fmt, x...)\
         do {\
                 fprintf(stderr, fmt, ## x);\
@@ -175,7 +192,7 @@ inline int check_for_pod(int count, ...)
     va_start(ap, count);
     va_end(ap);
     return 0;
-};
+}
 
 //: ----------------------------------------------------------------------------
 //: Prototypes
@@ -186,4 +203,3 @@ void mem_display(const uint8_t *a_mem_buf, uint32_t a_length);
 } // namespace ns_waflz {
 
 #endif // NDEBUG_H_
-

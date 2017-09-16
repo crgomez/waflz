@@ -24,7 +24,17 @@
 //: ----------------------------------------------------------------------------
 //: Includes
 //: ----------------------------------------------------------------------------
-#include "wafl_filter.h"
+#include "waflz/wafl_filter.h"
+#include "support/ndebug.h"
+
+#include "waflz/def.h"
+
+// rapidjson
+#include "rapidjson/document.h"
+#include "rapidjson/error/error.h"
+#include "rapidjson/error/en.h"
+
+// pb
 #include "waflz.pb.h"
 
 #include <stdlib.h>
@@ -36,13 +46,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-//: ----------------------------------------------------------------------------
-//: Macros
-//: ----------------------------------------------------------------------------
 
-//: ----------------------------------------------------------------------------
-//: Fwd decl's
-//: ----------------------------------------------------------------------------
+namespace ns_waflz {
 
 //: ----------------------------------------------------------------------------
 //: \details: TODO
@@ -314,8 +319,10 @@ int32_t wafl_filter::init_with_line(const std::string &a_line)
 
         // Check if already is initd
         if(m_is_initd)
-                return STATUS_OK;
+                return WAFLZ_STATUS_OK;
 
+        // TODO FIX!!!
+#if 0
         m_filter_json = new Json::Value(Json::objectValue);
 
         Json::Reader l_reader;
@@ -323,7 +330,7 @@ int32_t wafl_filter::init_with_line(const std::string &a_line)
         if(!l_result)
         {
                 NDBG_PRINT("Error parsing json line: %s\n", a_line.c_str());
-                return STATUS_ERROR;
+                return WAFLZ_STATUS_ERROR;
         }
 
         //NDBG_PRINT("Filtering size: %u\n",a_filter.m_filter_json->size());
@@ -361,9 +368,9 @@ int32_t wafl_filter::init_with_line(const std::string &a_line)
                         add_match(FILE, l_match, l_is_negated);
                 }
         }
-
+#endif
         m_is_initd = true;
-        return STATUS_OK;
+        return WAFLZ_STATUS_OK;
 }
 
 //: ----------------------------------------------------------------------------
@@ -375,26 +382,26 @@ int32_t wafl_filter::init_with_file(const std::string &a_file)
 {
         // Check if already is initd
         if(m_is_initd)
-                return STATUS_OK;
+                return WAFLZ_STATUS_OK;
 
         // ---------------------------------------
         // Check is a file
         // TODO
         // ---------------------------------------
         struct stat l_stat;
-        int32_t l_status = STATUS_OK;
+        int32_t l_status = WAFLZ_STATUS_OK;
         l_status = stat(a_file.c_str(), &l_stat);
         if(l_status != 0)
         {
                 NDBG_PRINT("Error performing stat on file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
-                return STATUS_ERROR;
+                return WAFLZ_STATUS_ERROR;
         }
 
         // Check if is regular file
         if(!(l_stat.st_mode & S_IFREG))
         {
                 NDBG_PRINT("Error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
-                return STATUS_ERROR;
+                return WAFLZ_STATUS_ERROR;
         }
 
         // ---------------------------------------
@@ -405,7 +412,7 @@ int32_t wafl_filter::init_with_file(const std::string &a_file)
         if (NULL == l_file)
         {
                 NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
-                return STATUS_ERROR;
+                return WAFLZ_STATUS_ERROR;
         }
 
         // ---------------------------------------
@@ -418,7 +425,7 @@ int32_t wafl_filter::init_with_file(const std::string &a_file)
         if(l_read_size != l_size)
         {
                 NDBG_PRINT("Error performing fread.  Reason: %s [%d:%d]\n", strerror(errno), l_read_size, l_size);
-                return STATUS_ERROR;
+                return WAFLZ_STATUS_ERROR;
         }
 
         // ---------------------------------------
@@ -427,24 +434,24 @@ int32_t wafl_filter::init_with_file(const std::string &a_file)
         // Read in file
         std::string l_line;
         l_status = init_with_line(l_line);
-        if(l_status != STATUS_OK)
+        if(l_status != WAFLZ_STATUS_OK)
         {
-                return STATUS_ERROR;
+                return WAFLZ_STATUS_ERROR;
         }
 
         // ---------------------------------------
         // Close file...
         // ---------------------------------------
         l_status = fclose(l_file);
-        if (STATUS_OK != l_status)
+        if (WAFLZ_STATUS_OK != l_status)
         {
                 NDBG_PRINT("Error performing fclose.  Reason: %s\n", strerror(errno));
-                return STATUS_ERROR;
+                return WAFLZ_STATUS_ERROR;
         }
 
 
         m_is_initd = true;
-        return STATUS_OK;
+        return WAFLZ_STATUS_OK;
 }
 
 //: ----------------------------------------------------------------------------
@@ -467,14 +474,14 @@ wafl_filter::wafl_filter(void):
 //: ----------------------------------------------------------------------------
 wafl_filter::~wafl_filter()
 {
+        // TODO FIX!!!
+#if 0
         if(m_filter_json)
         {
                 delete m_filter_json;
                 m_filter_json = NULL;
         }
+#endif
 }
 
-
-//: ----------------------------------------------------------------------------
-//: Class variables
-//: ----------------------------------------------------------------------------
+}
