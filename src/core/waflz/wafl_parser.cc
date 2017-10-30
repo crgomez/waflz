@@ -624,7 +624,7 @@ int32_t wafl_parser::add_rule(const kv_list_t &a_variable_list,
                         }
                         if(STRCASECMP(l_variable_str, "tx"))
                         {
-                                NDBG_PRINT("T: %s\n", i_v->c_str());
+                                //NDBG_PRINT("T: %s\n", i_v->c_str());
                                 ++(m_tx_variables[*i_v]);
                         }
                         waflz_pb::sec_rule_t::variable_t::match_t *l_match = NULL;
