@@ -125,9 +125,10 @@ private:
         // -------------------------------------------------
         int32_t read_file_modsec(const std::string &a_file,
                                  bool a_force = false);
-        int32_t read_line(const char *a_line, std::string &ao_cur_line,
+        int32_t read_line(const char *a_line,
                           uint32_t a_line_len,
-                          uint32_t &ao_cur_line_num);
+                          std::string &ao_cur_line,
+                          uint32_t a_cur_line_num);
         int32_t read_wholeline(const char *a_line,
                                uint32_t a_line_len);
         int32_t read_secrule(const char *a_line,
@@ -185,6 +186,12 @@ private:
         // -------------------------------------------------
         waflz_pb::sec_config_t *m_config;
         // Debugging
+        count_map_t m_directives;
+        count_map_t m_variables;
+        count_map_t m_operators;
+        count_map_t m_actions;
+        count_map_t m_transformations;
+        count_map_t m_tx_variables;
         count_map_t m_unimplemented_directives;
         count_map_t m_unimplemented_variables;
         count_map_t m_unimplemented_operators;

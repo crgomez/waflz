@@ -115,17 +115,6 @@
 #define STRCASECMP_KV(a_match) (strcasecmp(i_kv->m_key.c_str(), a_match) == 0)
 #define STRCASECMP(a_str, a_match) (strcasecmp(a_str.c_str(), a_match) == 0)
 //: --------------------------------------------------------
-//: Caseless compare helper for variables
-//: --------------------------------------------------------
-#define VARIABLE_SET_IF_KV(a_key) \
-        if(STRCASECMP(l_variable_str, #a_key))\
-        {\
-                if(!i_kv->m_list.empty())\
-                {\
-                        l_var_type = waflz_pb::sec_rule_t_variable_t_type_t_##a_key;\
-                }\
-        }
-//: --------------------------------------------------------
 //: String 2 int
 //: --------------------------------------------------------
 #define STR2INT(a_str) strtoul(a_str.data(), NULL, 10)
@@ -402,25 +391,29 @@ int32_t wafl_parser::add_action(waflz_pb::sec_action_t *ao_action,
                 // actions
                 else if(STRCASECMP_KV("pass"))
                 {
+                        ++(m_actions["pass"]);
                         ao_action->set_action_type(waflz_pb::sec_action_t_action_type_t_PASS);
 
                 }
                 else if(STRCASECMP_KV("block"))
                 {
+                        ++(m_actions["block"]);
                         ao_action->set_action_type(waflz_pb::sec_action_t_action_type_t_BLOCK);
-
                 }
                 else if(STRCASECMP_KV("deny"))
                 {
+                        ++(m_actions["deny"]);
                         ao_action->set_action_type(waflz_pb::sec_action_t_action_type_t_DENY);
 
                 }
                 else if(STRCASECMP_KV("drop"))
                 {
+                        ++(m_actions["drop"]);
                         ao_action->set_action_type(waflz_pb::sec_action_t_action_type_t_DROP);
                 }
                 else if (STRCASECMP_KV("expirevar"))
                 {
+                        ++(m_actions["expirevar"]);
                         if(!i_kv->m_list.empty())
                         {
                                 ao_action->set_expirevar(*(i_kv->m_list.begin()));
@@ -429,6 +422,7 @@ int32_t wafl_parser::add_action(waflz_pb::sec_action_t *ao_action,
                 //allow may or may not have a param. eg: SecAction phase:1,allow:request,id:96 and SecAction phase:1,allow,id:97
                 else if (STRCASECMP_KV("allow"))
                 {
+                        ++(m_actions["allow"]);
                         std::string l_tmp;
                         // Use first
                         if(!i_kv->m_list.empty())
@@ -450,94 +444,36 @@ int32_t wafl_parser::add_action(waflz_pb::sec_action_t *ao_action,
                             i_t != i_kv->m_list.end();
                             ++i_t)
                         {
-                                if(STRCASECMP((*i_t), "CMDLINE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_CMDLINE);
-                                }
-                                else if(STRCASECMP((*i_t), "COMPRESSWHITESPACE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_COMPRESSWHITESPACE);
-                                }
-                                else if(STRCASECMP((*i_t), "CSSDECODE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_CSSDECODE);
-                                }
-                                else if(STRCASECMP((*i_t), "HEXENCODE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_HEXENCODE);
-                                }
-                                else if(STRCASECMP((*i_t), "HEXDECODE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_HEXDECODE);
-                                }
-                                else if(STRCASECMP((*i_t), "HTMLENTITYDECODE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_HTMLENTITYDECODE);
-                                }
-                                else if(STRCASECMP((*i_t), "JSDECODE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_JSDECODE);
-                                }
-                                else if(STRCASECMP((*i_t), "LENGTH"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_LENGTH);
-                                }
-                                else if(STRCASECMP((*i_t), "LOWERCASE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_LOWERCASE);
-                                }
-                                else if(STRCASECMP((*i_t), "MD5"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_MD5);
-                                }
-                                else if(STRCASECMP((*i_t), "NONE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_NONE);
-                                }
-                                else if(STRCASECMP((*i_t), "NORMALIZEPATH"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_NORMALIZEPATH);
-                                }
-                                else if(STRCASECMP((*i_t), "NORMALISEPATH"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_NORMALISEPATH);
-                                }
-                                else if(STRCASECMP((*i_t), "NORMALIZEPATHWIN"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_NORMALIZEPATHWIN);
-                                }
-                                else if(STRCASECMP((*i_t), "REMOVENULLS"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_REMOVENULLS);
-                                }
-                                else if(STRCASECMP((*i_t), "REMOVEWHITESPACE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_REMOVEWHITESPACE);
-                                }
-                                else if(STRCASECMP((*i_t), "REMOVECOMMENTS"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_REMOVEWHITESPACE);
-                                }
-                                else if(STRCASECMP((*i_t), "REPLACECOMMENTS"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_REPLACECOMMENTS);
-                                }
-                                else if(STRCASECMP((*i_t), "SHA1"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_SHA1);
-                                }
-                                else if(STRCASECMP((*i_t), "URLDECODEUNI"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_URLDECODEUNI);
-                                }
-                                else if(STRCASECMP((*i_t), "URLDECODE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_URLDECODE);
-                                }
-                                else if(STRCASECMP((*i_t), "UTF8TOUNICODE"))
-                                {
-                                        ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_UTF8TOUNICODE);
-                                }
+
+#define _ELIF_TX(_tx) else if(STRCASECMP((*i_t), #_tx)) { \
+                ++(m_transformations[#_tx]);\
+                ao_action->add_t(waflz_pb::sec_action_t_transformation_type_t_##_tx); \
+        }
+
+                                if(0) {}
+                                _ELIF_TX(CMDLINE)
+                                _ELIF_TX(COMPRESSWHITESPACE)
+                                _ELIF_TX(CSSDECODE)
+                                _ELIF_TX(HEXENCODE)
+                                _ELIF_TX(HEXDECODE)
+                                _ELIF_TX(HTMLENTITYDECODE)
+                                _ELIF_TX(JSDECODE)
+                                _ELIF_TX(LENGTH)
+                                _ELIF_TX(LOWERCASE)
+                                _ELIF_TX(MD5)
+                                _ELIF_TX(NONE)
+                                _ELIF_TX(NORMALIZEPATH)
+                                _ELIF_TX(NORMALISEPATH)
+                                _ELIF_TX(NORMALIZEPATHWIN)
+                                _ELIF_TX(REMOVENULLS)
+                                _ELIF_TX(REMOVEWHITESPACE)
+                                _ELIF_TX(REMOVECOMMENTS)
+                                _ELIF_TX(REPLACECOMMENTS)
+                                _ELIF_TX(REMOVECOMMENTS)
+                                _ELIF_TX(SHA1)
+                                _ELIF_TX(URLDECODEUNI)
+                                _ELIF_TX(URLDECODE)
+                                _ELIF_TX(UTF8TOUNICODE)
                                 else
                                 {
                                         std::string l_lowercase = *i_t;
@@ -567,10 +503,10 @@ int32_t wafl_parser::add_action(waflz_pb::sec_action_t *ao_action,
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 int32_t wafl_parser::add_rule(const kv_list_t &a_variable_list,
-                               const std::string &a_operator_fx,
-                               const std::string &a_operator_match,
-                               const kv_list_t &a_action_list,
-                               bool a_operator_is_negated)
+                              const std::string &a_operator_fx,
+                              const std::string &a_operator_match,
+                              const kv_list_t &a_action_list,
+                              bool a_operator_is_negated)
 {
 
         waflz_pb::sec_rule_t *l_rule = NULL;
@@ -623,6 +559,17 @@ int32_t wafl_parser::add_rule(const kv_list_t &a_variable_list,
                         // get type
                         // ---------------------------------------------------
                         waflz_pb::sec_rule_t_variable_t_type_t l_var_type = waflz_pb::sec_rule_t_variable_t_type_t_ARGS;
+
+#define VARIABLE_SET_IF_KV(a_key) \
+        if(STRCASECMP(l_variable_str, #a_key))\
+        {\
+                if(!i_kv->m_list.empty())\
+                {\
+                        ++(m_variables[#a_key]); \
+                        l_var_type = waflz_pb::sec_rule_t_variable_t_type_t_##a_key;\
+                }\
+        }
+
                         VARIABLE_SET_IF_KV(ARGS)
                         else VARIABLE_SET_IF_KV(ARGS_COMBINED_SIZE)
                         else VARIABLE_SET_IF_KV(ARGS_NAMES)
@@ -675,14 +622,17 @@ int32_t wafl_parser::add_rule(const kv_list_t &a_variable_list,
                                 ++(m_unimplemented_variables[l_lowercase]);
                                 l_found_key = false;
                         }
+                        if(STRCASECMP(l_variable_str, "tx"))
+                        {
+                                NDBG_PRINT("T: %s\n", i_v->c_str());
+                                ++(m_tx_variables[*i_v]);
+                        }
                         waflz_pb::sec_rule_t::variable_t::match_t *l_match = NULL;
                         if(l_found_key && !(i_v->empty()))
                         {
                                 l_match = new waflz_pb::sec_rule_t::variable_t::match_t();
                                 l_match->set_is_negated(l_match_is_negated);
-
                                 std::string l_match_str = *i_v;
-
                                 // Check if has "selection operator" '/'s
                                 if((l_match_str[0] == '/') && (l_match_str[l_match_str.length() - 1] == '/'))
                                 {
@@ -717,7 +667,6 @@ int32_t wafl_parser::add_rule(const kv_list_t &a_variable_list,
                                 waflz_pb::sec_rule_t::variable_t *l_variable = l_rule->add_variable();
                                 l_variable->set_type(l_var_type);
                                 l_variable->set_is_count(l_is_count);
-
                                 if(l_match)
                                 {
                                         l_variable->add_match()->CopyFrom(*l_match);
@@ -747,188 +696,52 @@ int32_t wafl_parser::add_rule(const kv_list_t &a_variable_list,
                 if(!a_operator_fx.empty())
                 {
                         l_operator->set_is_regex(false);
-                        // -------------------------------------------
-                        //
-                        // -------------------------------------------
-                        //
-                        if(STRCASECMP(a_operator_fx, "BEGINSWITH"))
+                        if(STRCASECMP(a_operator_fx, "RX"))
                         {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_BEGINSWITH);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "CONTAINS"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_CONTAINS);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "CONTAINSWORD"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_CONTAINSWORD);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "ENDSWITH"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_ENDSWITH);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "EQ"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_EQ);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "GE"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_GE);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "GEOLOOKUP"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_GEOLOOKUP);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "GSBLOOKUP"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_GSBLOOKUP);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "GT"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_GT);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "INSPECTFILE"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_INSPECTFILE);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "IPMATCH"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCH);
-                        }
-                        else if(STRCASECMP(a_operator_fx, "IPMATCHF"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHF);
-                        }
-                        else if(STRCASECMP(a_operator_fx, "IPMATCHFROMFILE"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_IPMATCHFROMFILE);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "LE"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_LE);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "LT"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_LT);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "NOMATCH"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_NOMATCH);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "PM"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_PM);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "PMF"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_PMF);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "PMFROMFILE"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_PMFROMFILE);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "RBL"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_RBL);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "RSUB"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_RSUB);
-                        }
-                        // rx
-                        else if(STRCASECMP(a_operator_fx, "RX"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_RX);
                                 l_operator->set_is_regex(true);
                         }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "STREQ"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_STREQ);
-                        }
+                        if(0) {}
+#define _SET_OPERATOR_IF(_op) \
+        else if(STRCASECMP(a_operator_fx, #_op)) { \
+                ++(m_operators[#_op]); \
+                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_##_op); }
 
-                        //
-                        else if(STRCASECMP(a_operator_fx, "STRMATCH"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_STRMATCH);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "UNCONDITIONALMATCH"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_UNCONDITIONALMATCH);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "VALIDATEDTD"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_VALIDATEDTD);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "VALIDATEHASH"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_VALIDATEHASH);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "VALIDATESCHEMA"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_VALIDATESCHEMA);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "VALIDATEBYTERANGE"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_VALIDATEBYTERANGE);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "VALIDATEURLENCODING"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_VALIDATEURLENCODING);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "VALIDATEUTF8ENCODING"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_VALIDATEUTF8ENCODING);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "VERIFYCC"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_VERIFYCC);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "DETECTXSS"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_DETECTXSS);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "VERIFYSSN"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_VERIFYSSN);
-                        }
-                        //
-                        else if(STRCASECMP(a_operator_fx, "DETECTSQLI"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_DETECTSQLI);
-                        }
-                        else if(STRCASECMP(a_operator_fx, "WITHIN"))
-                        {
-                                l_operator->set_type(waflz_pb::sec_rule_t_operator_t_type_t_WITHIN);
-                        }
+                        _SET_OPERATOR_IF(BEGINSWITH)
+                        _SET_OPERATOR_IF(CONTAINS)
+                        _SET_OPERATOR_IF(CONTAINSWORD)
+                        _SET_OPERATOR_IF(ENDSWITH)
+                        _SET_OPERATOR_IF(EQ)
+                        _SET_OPERATOR_IF(GE)
+                        _SET_OPERATOR_IF(GEOLOOKUP)
+                        _SET_OPERATOR_IF(GSBLOOKUP)
+                        _SET_OPERATOR_IF(GT)
+                        _SET_OPERATOR_IF(INSPECTFILE)
+                        _SET_OPERATOR_IF(IPMATCH)
+                        _SET_OPERATOR_IF(IPMATCHF)
+                        _SET_OPERATOR_IF(IPMATCHFROMFILE)
+                        _SET_OPERATOR_IF(LE)
+                        _SET_OPERATOR_IF(LT)
+                        _SET_OPERATOR_IF(NOMATCH)
+                        _SET_OPERATOR_IF(PM)
+                        _SET_OPERATOR_IF(PMF)
+                        _SET_OPERATOR_IF(PMFROMFILE)
+                        _SET_OPERATOR_IF(RBL)
+                        _SET_OPERATOR_IF(RSUB)
+                        _SET_OPERATOR_IF(RX)
+                        _SET_OPERATOR_IF(STREQ)
+                        _SET_OPERATOR_IF(STRMATCH)
+                        _SET_OPERATOR_IF(UNCONDITIONALMATCH)
+                        _SET_OPERATOR_IF(VALIDATEDTD)
+                        _SET_OPERATOR_IF(VALIDATEHASH)
+                        _SET_OPERATOR_IF(VALIDATESCHEMA)
+                        _SET_OPERATOR_IF(VALIDATEBYTERANGE)
+                        _SET_OPERATOR_IF(VALIDATEURLENCODING)
+                        _SET_OPERATOR_IF(VALIDATEUTF8ENCODING)
+                        _SET_OPERATOR_IF(VERIFYCC)
+                        _SET_OPERATOR_IF(DETECTXSS)
+                        _SET_OPERATOR_IF(VERIFYSSN)
+                        _SET_OPERATOR_IF(DETECTSQLI)
+                        _SET_OPERATOR_IF(WITHIN)
                         // default
                         else
                         {
@@ -1187,9 +1000,9 @@ int32_t wafl_parser::read_secaction(const char *a_line,
         {
                 return WAFLZ_STATUS_OK;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Get ACTIONS [optional]
-        // ---------------------------------------
+        // -------------------------------------------------
         std::string l_actions;
         l_status = get_next_string((char **)&l_line, &i_char, l_line_len, l_actions);
         if(l_status != WAFLZ_STATUS_OK)
@@ -1212,18 +1025,18 @@ int32_t wafl_parser::read_secaction(const char *a_line,
                                         l_actions.c_str());
                 }
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Try parse actions
-        // ---------------------------------------
+        // -------------------------------------------------
         kv_list_t l_action_list;
         l_status = tokenize_kv_list(l_actions, ',', l_action_list);
         if(l_status != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Add rule
-        // ---------------------------------------
+        // -------------------------------------------------
         waflz_pb::sec_action_t *l_action = NULL;
         if(a_is_default)
         {
@@ -1270,9 +1083,9 @@ int32_t wafl_parser::read_secrule(const char *a_line,
         {
                 return WAFLZ_STATUS_OK;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Get VARIABLES
-        // ---------------------------------------
+        // -------------------------------------------------
         std::string l_variables;
         l_status = get_next_string((char **)&l_line, &i_char, l_line_len, l_variables);
         if(l_status != WAFLZ_STATUS_OK)
@@ -1280,9 +1093,9 @@ int32_t wafl_parser::read_secrule(const char *a_line,
                 return WAFLZ_STATUS_ERROR;
         }
         //NDBG_PRINT("l_variables: %s\n", l_variables.c_str());
-        // ---------------------------------------
+        // -------------------------------------------------
         // Get OPERATOR
-        // ---------------------------------------
+        // -------------------------------------------------
         std::string l_operator;
         l_status = get_next_string((char **)&l_line, &i_char, l_line_len, l_operator);
         if(l_status != WAFLZ_STATUS_OK)
@@ -1291,9 +1104,9 @@ int32_t wafl_parser::read_secrule(const char *a_line,
         }
 
         //NDBG_PRINT("l_operator: %s\n", l_operator.c_str());
-        // ---------------------------------------
+        // -------------------------------------------------
         // Get ACTIONS [optional]
-        // ---------------------------------------
+        // -------------------------------------------------
         std::string l_actions;
         l_status = get_next_string((char **)&l_line, &i_char, l_line_len, l_actions);
         if(l_status != WAFLZ_STATUS_OK)
@@ -1320,18 +1133,18 @@ int32_t wafl_parser::read_secrule(const char *a_line,
                                         l_actions.c_str());
                 }
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Try parse variables
-        // ---------------------------------------
+        // -------------------------------------------------
         kv_list_t l_variable_list;
         l_status = tokenize_kv_list(l_variables, '|', l_variable_list);
         if(l_status != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Parse operator
-        // ---------------------------------------
+        // -------------------------------------------------
         std::string l_operator_fx;
         std::string l_operator_match;
         bool l_is_negated(false);
@@ -1368,18 +1181,18 @@ int32_t wafl_parser::read_secrule(const char *a_line,
                 l_operator_fx = "rx";
                 l_operator_match.assign( l_operator, l_index, l_operator.length() - l_index);
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Try parse actions
-        // ---------------------------------------
+        // -------------------------------------------------
         kv_list_t l_action_list;
         l_status = tokenize_kv_list(l_actions, ',', l_action_list);
         if(l_status != WAFLZ_STATUS_OK)
         {
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Add rule
-        // ---------------------------------------
+        // -------------------------------------------------
         l_status = add_rule(l_variable_list, l_operator_fx, l_operator_match, l_action_list, l_is_negated);
         if(l_status != WAFLZ_STATUS_OK)
         {
@@ -1422,9 +1235,7 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
         // -------------------------------------------------
         if(strcasecmp(l_directive.c_str(), "include") == 0)
         {
-
                 //NDBG_OUTPUT(": %s\n", l_line);
-
                 // Read from quote to quote
                 if(*l_line != '"')
                 {
@@ -1432,11 +1243,9 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                         WAFLZ_CONFIG_ERROR_MSG("include file specification malformed");
                         return WAFLZ_STATUS_ERROR;
                 }
-
                 // Skip quote
                 ++i_char;
                 ++l_line;
-
                 const char *l_include_file_str_start = l_line;
                 SCAN_UNTIL_ESC(l_line, '"', i_char, l_line_len);
                 // Check bounds
@@ -1446,11 +1255,9 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                         WAFLZ_CONFIG_ERROR_MSG("include file specification malformed");
                         return WAFLZ_STATUS_ERROR;
                 }
-
                 std::string l_include_file;
                 l_include_file.assign(l_include_file_str_start, l_line);
                 //NDBG_OUTPUT("%sINCLUDE%s: %s\n", ANSI_COLOR_FG_MAGENTA, ANSI_COLOR_OFF, l_include_file.c_str());
-
                 // Recurse
                 int l_status;
                 l_status = read_file_modsec(l_include_file.c_str(), false);
@@ -1458,11 +1265,8 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 {
                         return WAFLZ_STATUS_ERROR;
                 }
-
         } else {
-
                 string_list_t l_list;
-
                 // -----------------------------------------
                 // secrule
                 // -----------------------------------------
@@ -1471,6 +1275,7 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
 
                 IF_DIRECTIVE("secrule")
                 {
+                        ++(m_directives["secrule"]);
                         int l_status;
                         l_status = read_secrule(l_line, a_line_len - i_char);
                         if(l_status != WAFLZ_STATUS_OK)
@@ -1480,6 +1285,7 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("secdefaultaction")
                 {
+                        ++(m_directives["secdefaultaction"]);
                         int l_status;
                         l_status = read_secaction(l_line, a_line_len - i_char, true);
                         if(l_status != WAFLZ_STATUS_OK)
@@ -1489,6 +1295,7 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("secaction")
                 {
+                        ++(m_directives["secaction"]);
                         int l_status;
                         l_status = read_secaction(l_line, a_line_len - i_char, false);
                         if(l_status != WAFLZ_STATUS_OK)
@@ -1496,7 +1303,6 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
-
 #define GET_STRS(_error_msg) \
         do {\
         int32_t _status = 0;\
@@ -1510,16 +1316,19 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
 
                 ELIF_DIRECTIVE("secargumentseparator")
                 {
+                        ++(m_directives["secargumentseparator"]);
                         GET_STRS("secargumentseparator missing separator");
                         m_config->set_argument_separator((uint32_t)(l_list.begin()->data()[0]));
                 }
                 ELIF_DIRECTIVE("seccomponentsignature")
                 {
+                        ++(m_directives["seccomponentsignature"]);
                         GET_STRS("seccomponentsignature missing string");
                         m_config->set_component_signature(*(l_list.begin()));
                 }
                 ELIF_DIRECTIVE("seccookieformat")
                 {
+                        ++(m_directives["seccookieformat"]);
                         GET_STRS("seccookieformat missing format type 0|1");
                         if(*(l_list.begin()) == "1")
                         {
@@ -1532,29 +1341,34 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("secdatadir")
                 {
+                        ++(m_directives["secdatadir"]);
                         GET_STRS("secdatadir missing directory string");
                         m_config->set_data_dir(*(l_list.begin()));
                 }
                 ELIF_DIRECTIVE("secmarker")
                 {
+                        ++(m_directives["secmarker"]);
                         GET_STRS("secmarker missing id|label string");
                         waflz_pb::directive_t *l_directive = m_config->add_directive();
                         l_directive->set_marker(*(l_list.begin()));
                 }
                 ELIF_DIRECTIVE("secpcrematchlimit")
                 {
+                        ++(m_directives["secpcrematchlimit"]);
                         GET_STRS("secpcrematchlimit missing size");
                         uint32_t l_limit = STR2INT((*(l_list.begin())));
                         m_config->set_pcre_match_limit(l_limit);
                 }
                 ELIF_DIRECTIVE("secpcrematchlimitrecursion")
                 {
+                        ++(m_directives["secpcrematchlimitrecursion"]);
                         GET_STRS("secpcrematchlimitrecursion missing size");
                         uint32_t l_limit = STR2INT((*(l_list.begin())));
                         m_config->set_pcre_match_limit_recursion(l_limit);
                 }
                 ELIF_DIRECTIVE("secrequestbodyaccess")
                 {
+                        ++(m_directives["secrequestbodyaccess"]);
                         GET_STRS("secrequestbodyaccess missing specifier on|off");
                         if STRCASECMP((*(l_list.begin())), "ON")
                         {
@@ -1572,18 +1386,21 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("secrequestbodyinmemorylimit")
                 {
+                        ++(m_directives["secrequestbodyinmemorylimit"]);
                         GET_STRS("secrequestbodyinmemorylimit missing size");
                         uint32_t l_limit = STR2INT((*(l_list.begin())));
                         m_config->set_request_body_in_memory_limit(l_limit);
                 }
                 ELIF_DIRECTIVE("secrequestbodylimit")
                 {
+                        ++(m_directives["secrequestbodylimit"]);
                         GET_STRS("secrequestbodylimit missing size");
                         uint32_t l_limit = STR2INT((*(l_list.begin())));
                         m_config->set_request_body_limit(l_limit);
                 }
                 ELIF_DIRECTIVE("secrequestbodylimitaction")
                 {
+                        ++(m_directives["secrequestbodylimitaction"]);
                         GET_STRS("secrequestbodylimitaction missing specifier Reject|ProcessPartial");
                         if STRCASECMP((*(l_list.begin())), "Reject")
                         {
@@ -1601,12 +1418,14 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("secrequestbodynofileslimit")
                 {
+                        ++(m_directives["secrequestbodynofileslimit"]);
                         GET_STRS("secrequestbodynofileslimit missing size");
                         uint32_t l_limit = STR2INT((*(l_list.begin())));
                         m_config->set_request_body_no_files_limit(l_limit);
                 }
                 ELIF_DIRECTIVE("secresponsebodyaccess")
                 {
+                        ++(m_directives["secresponsebodyaccess"]);
                         GET_STRS("secresponsebodyaccess missing specifier on|off");
                         if STRCASECMP((*(l_list.begin())), "ON")
                         {
@@ -1624,12 +1443,14 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("secresponsebodylimit")
                 {
+                        ++(m_directives["secresponsebodylimit"]);
                         GET_STRS("secresponsebodylimit missing size");
                         uint32_t l_limit = STR2INT((*(l_list.begin())));
                         m_config->set_response_body_limit(l_limit);
                 }
                 ELIF_DIRECTIVE("secresponsebodylimitaction")
                 {
+                        ++(m_directives["secresponsebodylimitaction"]);
                         GET_STRS("secresponsebodylimitaction missing specifier Reject|ProcessPartial");
                         if STRCASECMP((*(l_list.begin())), "Reject")
                         {
@@ -1647,8 +1468,8 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("secresponsebodymimetype")
                 {
+                        ++(m_directives["secresponsebodymimetype"]);
                         GET_STRS("secresponsebodymimetype missing type list");
-
                         // Add types...
                         std::string l_mime_type;
                         for(string_list_t::iterator i_type = l_list.begin(); i_type != l_list.end(); ++i_type)
@@ -1660,6 +1481,7 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("secruleengine")
                 {
+                        ++(m_directives["secruleengine"]);
                         GET_STRS("secruleengine missing specification (on|off|detectiononly");
                         if STRCASECMP((*(l_list.begin())), "ON")
                         {
@@ -1676,33 +1498,39 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
                 }
                 ELIF_DIRECTIVE("sectmpdir")
                 {
+                        ++(m_directives["sectmpdir"]);
                         GET_STRS("sectmpdir missing directory string");
                         m_config->set_tmp_dir(*(l_list.begin()));
                 }
                 ELIF_DIRECTIVE("secdebuglog")
                 {
+                        ++(m_directives["secdebuglog"]);
                         GET_STRS("sectmpdir missing debug log file string");
                         m_config->set_debug_log(*(l_list.begin()));
                 }
                 ELIF_DIRECTIVE("secdebugloglevel")
                 {
+                        ++(m_directives["secdebugloglevel"]);
                         GET_STRS("secdebugloglevel missing size");
                         uint32_t l_level = STR2INT((*(l_list.begin())));
                         m_config->set_debug_log_level(l_level);
                 }
                 ELIF_DIRECTIVE("secruleremovebyid")
                 {
+                        ++(m_directives["secruleremovebyid"]);
                         GET_STRS("secruleremovebyid missing ruleid");
                         uint32_t l_rule_id = STR2INT((*(l_list.begin())));
                         m_config->add_rule_remove_by_id(l_rule_id);
                 }
                 ELIF_DIRECTIVE("secgeolookupdb")
                 {
+                        ++(m_directives["secgeolookupdb"]);
                         GET_STRS("secdebugloglevel missing db");
                         m_config->set_geo_lookup_db(*(l_list.begin()));
                 }
                 else
                 {
+                        NDBG_OUTPUT("XXX: %.*s\n", a_line_len, a_line);
                         std::string l_lowercase = l_directive;
                         std::transform(l_lowercase.begin(), l_lowercase.end(), l_lowercase.begin(), ::tolower);
                         ++(m_unimplemented_directives[l_lowercase]);
@@ -1719,38 +1547,21 @@ int32_t wafl_parser::read_wholeline(const char *a_line,
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
 int32_t wafl_parser::read_line(const char *a_line,
-                                std::string &ao_cur_line,
-                                uint32_t a_line_len,
-                                uint32_t &a_cur_line_num)
+                               uint32_t a_line_len,
+                               std::string &ao_cur_line,
+                               uint32_t a_cur_line_num)
 {
-
         // Line index
         uint32_t i_char = 0;
         const char *l_line = a_line;
-
-
-        //NDBG_OUTPUT("+=============================== LINE =================================+\n");
-        //NDBG_OUTPUT("%s", l_line);
-        //NDBG_OUTPUT("+----------------------------------------------------------------------+\n");
-
+        // -------------------------------------------------
         // Scan past whitespace
+        // -------------------------------------------------
         SCAN_OVER_SPACE(l_line, i_char, a_line_len);
         if(i_char == a_line_len)
         {
-                a_cur_line_num--;
                 return WAFLZ_STATUS_OK;
         }
-
-        // -------------------------------------------------
-        // If first non-whitespace is comment
-        // -move on
-        // -------------------------------------------------
-        if(*l_line == '#')
-        {
-                a_cur_line_num--;
-                return WAFLZ_STATUS_OK;
-        }
-
         // -------------------------------------------------
         // Search for continuation back to front
         // -------------------------------------------------
@@ -1759,23 +1570,42 @@ int32_t wafl_parser::read_line(const char *a_line,
         SCAN_OVER_SPACE_BKWD(l_line_end, i_char_end);
         if(i_char_end <= 0)
         {
-                a_cur_line_num--;
                 return WAFLZ_STATUS_OK;
         }
-
+        //NDBG_OUTPUT("last char == %c\n", *l_line_end);
         if(*l_line_end == '\\')
         {
                 // Continuation -append to current line and return
+                //NDBG_OUTPUT("append [%d bytes] \'%.*s\'\n",
+                //                i_char_end - i_char - 1,
+                //                i_char_end - i_char - 1,
+                //                l_line);
                 ao_cur_line.append(l_line, i_char_end - i_char - 1);
-                a_cur_line_num--;
                 return WAFLZ_STATUS_OK;
         }
-
+        // -------------------------------------------------
+        // If first non-whitespace is comment
+        // -move on
+        // -------------------------------------------------
+        if(*l_line == '#')
+        {
+                ao_cur_line.clear();
+                return WAFLZ_STATUS_OK;
+        }
         // -------------------------------------------------
         // Else we have a complete line
         // -------------------------------------------------
         ao_cur_line.append(l_line, i_char_end - i_char);
-
+        // -------------------------------------------------
+        // If first non-whitespace is comment
+        // -move on
+        // -------------------------------------------------
+        if(ao_cur_line.empty() ||
+           ao_cur_line[0] == '#')
+        {
+                ao_cur_line.clear();
+                return WAFLZ_STATUS_OK;
+        }
         //waflz_pb::sec_config_t_order_t *l_order = m_config->add_order();
                         //NDBG_PRINT("devtest setting directive");
         //l_order->set_position(a_cur_line_num);
@@ -1785,16 +1615,16 @@ int32_t wafl_parser::read_line(const char *a_line,
         {
                 return WAFLZ_STATUS_ERROR;
         }
-
+        if(!m_unimplemented_transformations.empty())
+        {
+                NDBG_OUTPUT("LINE: %.*s\n", a_line_len, a_line);
+        }
         //NDBG_PRINT("one line for whole thing %s\n\n", ao_cur_line.c_str());
         // clearline
         ao_cur_line.clear();
-
         // Done...
         return WAFLZ_STATUS_OK;
 }
-
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -1802,14 +1632,12 @@ int32_t wafl_parser::read_line(const char *a_line,
 //: ----------------------------------------------------------------------------
 int32_t wafl_parser::read_file_modsec(const std::string &a_file, bool a_force)
 {
-
-
         //NDBG_PRINT("FILE: %s\n", a_file.c_str());
-
-        // ---------------------------------------
+        // -------------------------------------------------
         // Check is a file
         // TODO
-        // ---------------------------------------
+        // -------------------------------------------------
+        // -------------------------------------------------
         struct stat l_stat;
         int32_t l_status = WAFLZ_STATUS_OK;
         l_status = stat(a_file.c_str(), &l_stat);
@@ -1818,18 +1646,16 @@ int32_t wafl_parser::read_file_modsec(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error performing stat on file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
-
         // Check if is regular file
         if(!(l_stat.st_mode & S_IFREG))
         {
                 NDBG_PRINT("Error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
                 return WAFLZ_STATUS_ERROR;
         }
-
-        // ---------------------------------------
+        // -------------------------------------------------
         // Check for *.conf
         // TODO -skip files w/o *.conf suffix
-        // ---------------------------------------
+        // -------------------------------------------------
         if(!a_force)
         {
                 std::string l_file_ext;
@@ -1843,10 +1669,9 @@ int32_t wafl_parser::read_file_modsec(const std::string &a_file, bool a_force)
                         return WAFLZ_STATUS_OK;
                 }
         }
-
-        // ---------------------------------------
+        // -------------------------------------------------
         // Open file...
-        // ---------------------------------------
+        // -------------------------------------------------
         FILE * l_file;
         l_file = fopen(a_file.c_str(),"r");
         if (NULL == l_file)
@@ -1854,13 +1679,11 @@ int32_t wafl_parser::read_file_modsec(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
-
         // Set current state
         m_cur_file = a_file;
         m_cur_file_base = get_file_wo_path(a_file);
         m_cur_line_num = 0;
         m_cur_line_pos = 0;
-
         std::string l_modsec_line;
         // -----------------------------------------------------------
         // TODO -might be faster to set max size and fgets instead
@@ -1873,7 +1696,6 @@ int32_t wafl_parser::read_file_modsec(const std::string &a_file, bool a_force)
         while(fgets(l_readline, sizeof(l_readline), a_file_ptr))
         {
 #endif
-
         ssize_t l_file_line_size = 0;
         char *l_file_line = NULL;
         size_t l_unused;
@@ -1886,48 +1708,93 @@ int32_t wafl_parser::read_file_modsec(const std::string &a_file, bool a_force)
                         ++m_cur_line_num;
                         //m_cur_line = l_file_line;
                         //NDBG_PRINT("FILE: %s LINE[%d len:%d]: %s\n", m_cur_file.c_str(), m_cur_line_num, (int)l_file_line_size, m_cur_line.c_str());
-                        l_status = read_line(l_file_line, l_modsec_line, (uint32_t)l_file_line_size, m_cur_line_num);
+                        l_status = read_line(l_file_line,
+                                             (uint32_t)l_file_line_size,
+                                             l_modsec_line,
+                                             m_cur_line_num);
                         if (WAFLZ_STATUS_OK != l_status)
                         {
                                 return WAFLZ_STATUS_ERROR;
                         }
                 }
-
                 if(l_file_line)
                 {
                         free(l_file_line);
                         l_file_line = NULL;
                 }
-
         }
-
-        // ---------------------------------------
+        // -------------------------------------------------
         // Close file...
-        // ---------------------------------------
+        // -------------------------------------------------
         l_status = fclose(l_file);
         if (WAFLZ_STATUS_OK != l_status)
         {
                 NDBG_PRINT("Error performing fclose.  Reason: %s\n", strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
-
         return WAFLZ_STATUS_OK;
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
 //: \param:   TODO
 //: ----------------------------------------------------------------------------
-static void show_map(const count_map_t &a_count_map, const char *a_msg)
+static void show_map(const count_map_t &a_count_map, const char *a_msg, bool a_used)
 {
         // Dump unimplemented guys
         if(a_count_map.empty())
+        {
                 return;
-
+        }
+        const char *l_color;
+        if(a_used)
+        {
+                l_color = ANSI_COLOR_FG_BLUE;
+        }
+        else
+        {
+                l_color = ANSI_COLOR_FG_RED;
+        }
+#if 1
+        // Sort
+        typedef std::map<uint32_t, std::list<std::string>> _sorted_map_t;
+        _sorted_map_t l_sorted_map;
+        l_sorted_map.clear();
+        for(count_map_t::const_iterator i_s = a_count_map.begin(); i_s != a_count_map.end(); ++i_s)
+        {
+                if(l_sorted_map.find(i_s->second) == l_sorted_map.end())
+                {
+                        std::list<std::string> l_list;
+                        l_list.push_back(i_s->first);
+                        l_sorted_map[i_s->second] = l_list;
+                }
+                else
+                {
+                        l_sorted_map[i_s->second].push_back(i_s->first);
+                }
+        }
         NDBG_OUTPUT("+---------------------------------+----------+\n");
         NDBG_OUTPUT("| %s%-32s%s| Count    |\n",
-                        ANSI_COLOR_FG_RED, a_msg, ANSI_COLOR_OFF);
+                        l_color, a_msg, ANSI_COLOR_OFF);
+        NDBG_OUTPUT("+---------------------------------+----------+\n");
+        for(_sorted_map_t::reverse_iterator i_str = l_sorted_map.rbegin();
+                        i_str != l_sorted_map.rend();
+                        ++i_str)
+        {
+                for(std::list<std::string>::iterator i_k = i_str->second.begin();
+                    i_k !=  i_str->second.end();
+                    ++i_k)
+                {
+                NDBG_OUTPUT("| %s%-32s%s| %8d |\n",
+                                ANSI_COLOR_FG_YELLOW, i_k->c_str(), ANSI_COLOR_OFF,
+                                i_str->first);
+                }
+        }
+        NDBG_OUTPUT("+---------------------------------+----------+\n");
+#else
+        NDBG_OUTPUT("+---------------------------------+----------+\n");
+        NDBG_OUTPUT("| %s%-32s%s| Count    |\n",
+                        l_color, a_msg, ANSI_COLOR_OFF);
         NDBG_OUTPUT("+---------------------------------+----------+\n");
         for(count_map_t::const_iterator i_str = a_count_map.begin();
                         i_str != a_count_map.end();
@@ -1938,8 +1805,8 @@ static void show_map(const count_map_t &a_count_map, const char *a_msg)
                                 i_str->second);
         }
         NDBG_OUTPUT("+---------------------------------+----------+\n");
+#endif
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -1947,14 +1814,20 @@ static void show_map(const count_map_t &a_count_map, const char *a_msg)
 //: ----------------------------------------------------------------------------
 void wafl_parser::show_status(void)
 {
+        // Dump implemented guys
+        show_map(m_directives,"Directives", true);
+        show_map(m_variables,"Variables", true);
+        show_map(m_operators,"Operators", true);
+        show_map(m_actions,"Actions", true);
+        show_map(m_transformations,"Transforms", true);
+        show_map(m_tx_variables,"Tx Variables", true);
         // Dump unimplemented guys
-        show_map(m_unimplemented_directives,"Unimplemented Directives");
-        show_map(m_unimplemented_variables,"Unimplemented Variables");
-        show_map(m_unimplemented_operators,"Unimplemented Operators");
-        show_map(m_unimplemented_actions,"Unimplemented Actions");
-        show_map(m_unimplemented_transformations,"Unimplemented Transforms");
+        show_map(m_unimplemented_directives,"Unimplemented Directives", false);
+        show_map(m_unimplemented_variables,"Unimplemented Variables", false);
+        show_map(m_unimplemented_operators,"Unimplemented Operators", false);
+        show_map(m_unimplemented_actions,"Unimplemented Actions", false);
+        show_map(m_unimplemented_transformations,"Unimplemented Transforms", false);
 }
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -1962,7 +1835,6 @@ void wafl_parser::show_status(void)
 //: ----------------------------------------------------------------------------
 int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t &ao_match_list)
 {
-
         pcre *l_re;
         const char *l_error;
         int l_erroffset;
@@ -1977,12 +1849,10 @@ int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t
                 NDBG_PRINT("pcre_compile failed (offset: %d), %s\n", l_erroffset, l_error);
                 return WAFLZ_STATUS_ERROR;
         }
-
         uint32_t l_offset = 0;
         uint32_t l_len = strlen(a_str);
         int l_rc;
         int l_ovector[100];
-
         while (l_offset < l_len)
         {
                 l_rc = pcre_exec(l_re,                  // Compiled pattern
@@ -1997,8 +1867,6 @@ int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t
                 {
                         break;
                 }
-
-
                 for(int i_match = 0; i_match < l_rc; ++i_match)
                 {
                         std::string l_match;
@@ -2008,12 +1876,8 @@ int32_t get_pcre_match_list(const char *a_regex, const char *a_str, match_list_t
                 }
                 l_offset = l_ovector[1];
         }
-
         return WAFLZ_STATUS_OK;
 }
-
-
-
 //: ----------------------------------------------------------------------------
 //: \details: TODO
 //: \return:  TODO
@@ -2727,10 +2591,10 @@ int32_t wafl_parser::append_modsec_rule(std::string &ao_str,
 //: ----------------------------------------------------------------------------
 int32_t wafl_parser::read_file_pbuf(const std::string &a_file, bool a_force)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // Check is a file
         // TODO
-        // ---------------------------------------
+        // -------------------------------------------------
         struct stat l_stat;
         int32_t l_status = WAFLZ_STATUS_OK;
         l_status = stat(a_file.c_str(), &l_stat);
@@ -2745,10 +2609,10 @@ int32_t wafl_parser::read_file_pbuf(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Check for *.conf
         // TODO -skip files w/o *.pbuf suffix
-        // ---------------------------------------
+        // -------------------------------------------------
         if(!a_force)
         {
                 std::string l_file_ext;
@@ -2762,9 +2626,9 @@ int32_t wafl_parser::read_file_pbuf(const std::string &a_file, bool a_force)
                         return WAFLZ_STATUS_OK;
                 }
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Open file...
-        // ---------------------------------------
+        // -------------------------------------------------
         FILE * l_file;
         l_file = fopen(a_file.c_str(),"r");
         if (NULL == l_file)
@@ -2772,9 +2636,9 @@ int32_t wafl_parser::read_file_pbuf(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Read in file...
-        // ---------------------------------------
+        // -------------------------------------------------
         int32_t l_size = l_stat.st_size;
         int32_t l_read_size;
         char *l_buf = (char *)malloc(sizeof(char)*l_size);
@@ -2784,9 +2648,9 @@ int32_t wafl_parser::read_file_pbuf(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error performing fread.  Reason: %s [%d:%d]\n", strerror(errno), l_read_size, l_size);
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Parse
-        // ---------------------------------------
+        // -------------------------------------------------
         bool l_parse_status;
         m_config->Clear();
         l_parse_status = m_config->ParseFromArray(l_buf, l_size);
@@ -2795,9 +2659,9 @@ int32_t wafl_parser::read_file_pbuf(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error performing ParseFromArray\n");
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Close file...
-        // ---------------------------------------
+        // -------------------------------------------------
         l_status = fclose(l_file);
         if (WAFLZ_STATUS_OK != l_status)
         {
@@ -2814,10 +2678,10 @@ int32_t wafl_parser::read_file_pbuf(const std::string &a_file, bool a_force)
 //: ----------------------------------------------------------------------------
 int32_t wafl_parser::read_file_json(const std::string &a_file, bool a_force)
 {
-        // ---------------------------------------
+        // -------------------------------------------------
         // Check is a file
         // TODO
-        // ---------------------------------------
+        // -------------------------------------------------
         struct stat l_stat;
         int32_t l_status = WAFLZ_STATUS_OK;
         l_status = stat(a_file.c_str(), &l_stat);
@@ -2832,10 +2696,10 @@ int32_t wafl_parser::read_file_json(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error opening file: %s.  Reason: is NOT a regular file\n", a_file.c_str());
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Check for *.conf
         // TODO -skip files w/o *.pbuf suffix
-        // ---------------------------------------
+        // -------------------------------------------------
         if(!a_force)
         {
                 std::string l_file_ext;
@@ -2849,9 +2713,9 @@ int32_t wafl_parser::read_file_json(const std::string &a_file, bool a_force)
                         return WAFLZ_STATUS_OK;
                 }
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Open file...
-        // ---------------------------------------
+        // -------------------------------------------------
         FILE * l_file;
         l_file = fopen(a_file.c_str(),"r");
         if (NULL == l_file)
@@ -2859,9 +2723,9 @@ int32_t wafl_parser::read_file_json(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error opening file: %s.  Reason: %s\n", a_file.c_str(), strerror(errno));
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Read in file...
-        // ---------------------------------------
+        // -------------------------------------------------
         int32_t l_size = l_stat.st_size;
         int32_t l_read_size;
         char *l_buf = (char *)malloc(sizeof(char)*l_size);
@@ -2871,9 +2735,9 @@ int32_t wafl_parser::read_file_json(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error performing fread.  Reason: %s [%d:%d]\n", strerror(errno), l_read_size, l_size);
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Parse
-        // ---------------------------------------
+        // -------------------------------------------------
         try
         {
                 ns_jspb::update_from_json(*m_config, l_buf, l_size);
@@ -2883,9 +2747,9 @@ int32_t wafl_parser::read_file_json(const std::string &a_file, bool a_force)
                 NDBG_PRINT("Error -json_protobuf::convert_to_json threw\n");
                 return WAFLZ_STATUS_ERROR;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // Close file...
-        // ---------------------------------------
+        // -------------------------------------------------
         l_status = fclose(l_file);
         if (WAFLZ_STATUS_OK != l_status)
         {
@@ -2972,14 +2836,17 @@ int32_t wafl_parser::read_single_line(format_t a_format, std::string a_line)
         }
         switch(a_format)
         {
-        // ---------------------------------------
+        // -------------------------------------------------
         // MODSECURITY
-        // ---------------------------------------
+        // -------------------------------------------------
         case format_t::MODSECURITY:
         {
                 std::string l_modsec_line;
                 ++m_cur_line_num;
-                l_status = read_line(a_line.c_str(), l_modsec_line, a_line.length(), m_cur_line_num);
+                l_status = read_line(a_line.c_str(),
+                                     a_line.length(),
+                                     l_modsec_line,
+                                     m_cur_line_num);
                 if (WAFLZ_STATUS_OK != l_status)
                 {
                         NDBG_PRINT("error\n");
@@ -2987,9 +2854,9 @@ int32_t wafl_parser::read_single_line(format_t a_format, std::string a_line)
                 }
                 break;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // JSON
-        // ---------------------------------------
+        // -------------------------------------------------
         case format_t::JSON:
         {
                 try
@@ -3003,9 +2870,9 @@ int32_t wafl_parser::read_single_line(format_t a_format, std::string a_line)
                 }
                 break;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // PROTOBUF
-        // ---------------------------------------
+        // -------------------------------------------------
         case format_t::PROTOBUF:
         {
                 bool l_s;
@@ -3018,9 +2885,9 @@ int32_t wafl_parser::read_single_line(format_t a_format, std::string a_line)
                 }
                 break;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // ???
-        // ---------------------------------------
+        // -------------------------------------------------
         default:
         {
                 NDBG_PRINT("error\n");
@@ -3039,33 +2906,33 @@ int32_t wafl_parser::read_file(format_t a_format, const std::string &a_file, boo
         int l_status;
         switch(a_format)
         {
-        // ---------------------------------------
+        // -------------------------------------------------
         // MODSECURITY
-        // ---------------------------------------
+        // -------------------------------------------------
         case format_t::MODSECURITY:
         {
                 l_status = read_file_modsec(a_file, a_force);
                 return l_status;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // JSON
-        // ---------------------------------------
+        // -------------------------------------------------
         case format_t::JSON:
         {
                 l_status = read_file_json(a_file, a_force);
                 return l_status;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // PROTOBUF
-        // ---------------------------------------
+        // -------------------------------------------------
         case format_t::PROTOBUF:
         {
                 l_status = read_file_pbuf(a_file, a_force);
                 return l_status;
         }
-        // ---------------------------------------
+        // -------------------------------------------------
         // ???
-        // ---------------------------------------
+        // -------------------------------------------------
         default:
         {
                 // TODO Add message
