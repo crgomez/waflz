@@ -55,13 +55,6 @@ endfunction(find_python_module)
 find_python_module(pytest REQUIRED)
 find_python_module(requests REQUIRED)
 # ------------------------------------------------------------------------------
-# msx
-# ------------------------------------------------------------------------------
-add_test(blackbox_access_settings_msx
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/access_settings/test_bb_access_settings_msx.py)
-add_test(blackbox_ruleset_msx
-         ${CMAKE_CURRENT_SOURCE_DIR}/run_tests.sh ${CMAKE_CURRENT_SOURCE_DIR}/ruleset/test_ruleset_msx.py)
-# ------------------------------------------------------------------------------
 # waflz
 # ------------------------------------------------------------------------------
 add_test(blackbox_access_settings
