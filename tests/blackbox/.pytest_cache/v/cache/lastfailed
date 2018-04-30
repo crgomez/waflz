@@ -1,5 +1,0 @@
-{
-  "access_settings_waflz/test_bb_access_settings.py::test_bb_modsec_ec_access_settings_01_block_not_in_ignore_args": true, 
-  "access_settings_waflz/test_bb_access_settings.py::test_bb_modsec_ec_access_settings_03_block_headers_not_in_ignore_header_list": true, 
-  "access_settings_waflz/test_bb_access_settings.py::test_bb_modsec_ec_access_settings_06_block_cookie_not_in_ignore_cookie_list": true
-}
