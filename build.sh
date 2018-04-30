@@ -1,10 +1,10 @@
 #!/bin/bash
 # ----------------------------------------------------------------------------
-# Copyright (C) 2015 Verizon.  All Rights Reserved.
+# Copyright (C) 2016 Verizon.  All Rights Reserved.
 # All Rights Reserved
 #
 #   Author: Reed P Morrison
-#   Date:   09/30/2015  
+#   Date:   09/13/2016
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -19,46 +19,34 @@
 #   limitations under the License.
 #
 # ------------------------------------------------------------------------------
-
 # ------------------------------------------------------------------------------
-# Requirements:
-#   libgoogle-perftools-dev
-#   libprotobuf-dev
-#   libjsoncpp-dev
+# Requirements to build...
 # ------------------------------------------------------------------------------
-BUILD_DEPENDS="$(grep BUILDS_DEPENDS CMakeLists.txt | sed -e 's/.*"\(.*\)".*/\1/')"
-echo "Checking build dependencies (manually):"
-
-while read pkg; do
-    echo -n "  $pkg..."
-
-    pkg_name="${pkg%% *}"
-    pkg_ver="${pkg##* }"
-    pkg_ver="$(echo "${pkg_ver}" | sed -e 's/.*([<>=]*\([0-9].*\))/\1/')"
-    pkg_op="$(echo "${pkg_ver}" | sed -e 's/^\([^0-9]*\).*/\1/')"
-
-    if [[ "${pkg_ver}" == "${pkg_name}" ]]; then pkg_ver="0.0.0"; fi
-
-    installed_ver="$(dpkg-query --show --showformat '${Version}' $pkg_name)"
-    if [[ $? == 0 ]] &&
-        dpkg --compare-versions "${pkg_ver}" le "${installed_ver}"; then
-        echo "  pass"
-    else
-        echo "  fail.  Please install this package: ${pkg_name} with version ${pkg_ver}"
-        exit 1
-    fi
-done <<<"$(echo "${BUILD_DEPENDS}" | tr ',' '\n')"
-
+which cmake g++ make || {
+    echo "Failed to find required build packages. Please install with: sudo apt-get install cmake make g++"
+    exit 1
+}
+# This is necessary in scenarios where the URL of the remote for a given submodule has changed.
+git submodule sync || {
+    echo "FAILED TO SYNC IS2 LIB"
+    exit 1
+}
+git submodule update -f --init || {
+    echo "FAILED TO UPDATE TO LATEST IS2 LIB"
+    exit 1
+}
 # ------------------------------------------------------------------------------
-# To build...
+# Build waflz
 # ------------------------------------------------------------------------------
 mkdir -p build
 pushd build && \
-  cmake ../ \
+    cmake ../ \
+    -DBUILD_SYMBOLS=ON \
+    -DBUILD_APPS=ON \
     -DCMAKE_INSTALL_PREFIX=/usr && \
-  make && \
-  umask 0022 && chmod -R a+rX . && \
-  make package && \
+    make -j$(nproc) && \
+    make test && \
+    umask 0022 && chmod -R a+rX . && \
+    make package && \
 popd && \
 exit $?
-

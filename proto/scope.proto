@@ -1,0 +1,9 @@
+package waflz_pb;
+import "rule.proto";
+//: ----------------------------------------------------------------------------
+//: scope
+//: ----------------------------------------------------------------------------
+message scope {
+        optional waflz_pb.sec_rule_t.operator_t host = 1;
+        optional waflz_pb.sec_rule_t.operator_t path = 2;
+}

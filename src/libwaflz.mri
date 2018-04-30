@@ -1,0 +1,6 @@
+create libwaflz.a
+addlib ../../../ext/modsecurity/standalone/.libs/standalone.a
+addlib ../../build/ext_yajl-prefix/src/yajl-2.1.1/lib/libyajl_s.a
+addlib libwaflzcore.a
+save
+end

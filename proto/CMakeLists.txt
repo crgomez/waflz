@@ -1,78 +1,162 @@
-# ----------------------------------------------------------------------------
-# Copyright (C) 2015 Verizon.  All Rights Reserved.
-# All Rights Reserved
-#
-#   Author: Reed P Morrison
-#   Date:   09/30/2015  
-#
-#   Licensed under the Apache License, Version 2.0 (the "License");
-#   you may not use this file except in compliance with the License.
-#   You may obtain a copy of the License at
-#
-#       http://www.apache.org/licenses/LICENSE-2.0
-#
-#   Unless required by applicable law or agreed to in writing, software
-#   distributed under the License is distributed on an "AS IS" BASIS,
-#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-#   See the License for the specific language governing permissions and
-#   limitations under the License.
-#
+# ------------------------------------------------------------------------------
+# TODO boilerplate
 # ------------------------------------------------------------------------------
 project (waflz)
-
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 # TODO Create PROTOBUF_GENERATE_PYTHON command
 # for cmake...
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 # Generate python bindings
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 add_custom_command(
-    OUTPUT waflz_pb2.py
-    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/waflz.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/waflz.proto
+    OUTPUT enforcement_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/enforcement.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/enforcement.proto
+)
+add_custom_command(
+    OUTPUT rule_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/rule.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rule.proto
+)
+add_custom_command(
+    OUTPUT config_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/config.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config.proto
+)
+add_custom_command(
+    OUTPUT event_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/event.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/event.proto
+)
+add_custom_command(
+    OUTPUT request_info_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/request_info.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/request_info.proto
+)
+add_custom_command(
+    OUTPUT scope_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto
+)
+add_custom_command(
+    OUTPUT rl_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/rl.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rl.proto
+)
+add_custom_command(
+    OUTPUT request_info_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/request_info.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/request_info.proto
+)
+add_custom_command(
+    OUTPUT acl_pb2.py
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto --python_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto
 )
 
 # custom target for protobuf output
 add_custom_target(protodata_py_out ALL DEPENDS
-    ${CMAKE_BINARY_DIR}/proto/waflz_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/enforcement_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/rule_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/config_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/event_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/scope_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/rl_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/request_info_pb2.py
+    ${CMAKE_BINARY_DIR}/proto/acl_pb2.py
 )
-
-# ------------------------------------------------
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
+# protoc generation
+# ------------------------------------------------------------------------------
 add_custom_command(
-    OUTPUT waflz.pb.cc waflz.pb.h
-    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/waflz.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
-    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/waflz.proto
-)
-
-
-# ------------------------------------------------
+    OUTPUT enforcement.pb.cc enforcement.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/enforcement.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/enforcement.proto
+    )
+add_custom_command(
+    OUTPUT rule.pb.cc rule.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/rule.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rule.proto
+    )
+add_custom_command(
+    OUTPUT config.pb.cc config.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/config.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/config.proto
+    )
+add_custom_command(
+    OUTPUT event.pb.cc event.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/event.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/event.proto
+    )
+add_custom_command(
+    OUTPUT request_info.pb.cc request_info.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/request_info.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/request_info.proto
+    )
+add_custom_command(
+    OUTPUT acl.pb.cc acl.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/acl.proto
+    )
+add_custom_command(
+    OUTPUT scope.pb.cc scope.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/scope.proto
+    )
+add_custom_command(
+    OUTPUT rl.pb.cc rl.pb.h
+    COMMAND protoc -I ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/rl.proto --cpp_out=${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/rl.proto
+    )
+# ------------------------------------------------------------------------------
 # custom target for protobuf output
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 add_custom_target(protobuf_cpp_out ALL DEPENDS
-    ${CMAKE_BINARY_DIR}/proto/waflz.pb.cc
-    ${CMAKE_BINARY_DIR}/proto/waflz.pb.h
+    ${CMAKE_BINARY_DIR}/proto/enforcement.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/enforcement.pb.h
+    ${CMAKE_BINARY_DIR}/proto/rule.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/rule.pb.h
+    ${CMAKE_BINARY_DIR}/proto/config.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/config.pb.h
+    ${CMAKE_BINARY_DIR}/proto/event.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/event.pb.h
+    ${CMAKE_BINARY_DIR}/proto/request_info.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/request_info.pb.h
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/scope.pb.h
+    ${CMAKE_BINARY_DIR}/proto/rl.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/rl.pb.h
+    ${CMAKE_BINARY_DIR}/proto/acl.pb.cc
+    ${CMAKE_BINARY_DIR}/proto/acl.pb.h
 )
-
-
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 # Source files
-# ------------------------------------------------
-
+# ------------------------------------------------------------------------------
 set(SRCS
-   waflz.pb.cc
-   sec_desc.pb.cc
+    enforcement.pb.cc
+    rule.pb.cc
+    config.pb.cc
+    event.pb.cc
+    request_info.pb.cc
+    acl.pb.cc
+    scope.pb.cc
+    rl.pb.cc
 )
-
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 # Header files
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 set(HDRS
-    waflz.pb.h
+    enforcement.pb.h
+    rule.pb.h
+    config.pb.h
+    event.pb.h
+    request_info.pb.h
+    acl.pb.h
+    scope.pb.h
+    rl.pb.h
 )
-
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 # Set INST_HDRS to ensure the build-time generated
 # headers are included
-# ------------------------------------------------
+# ------------------------------------------------------------------------------
 SET(INST_HDRS ${HDRS})

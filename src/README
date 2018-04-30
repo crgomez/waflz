@@ -1,0 +1,7 @@
+apt-get install apache2-threaded-dev libcurl4-openssl-dev
+
+get modsecurity-apache_2.7.2.tar.gz from modsecurity website
+unpack as path/to/sailfish-1.5.0/modsecurity-apache_2.7.2/
+cd path/to/sailfish-1.5.0/modsecurity-apache_2.7.2/
+./configure --enable-standalone-module CPPFLAGS="-fPIC"
+make

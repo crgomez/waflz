@@ -1,0 +1,46 @@
+package waflz_pb;
+import "scope.proto";
+import "rule.proto";
+import "enforcement.proto";
+import "request_info.proto";
+//: ----------------------------------------------------------------------------
+//: tuple
+//: ----------------------------------------------------------------------------
+message rl_tuple {
+        enum dimension_t {
+                _NULL = 0;
+                IP = 1;
+                USER_AGENT = 2;
+        }
+        optional string id = 1;
+        optional string name = 2;
+        optional bool disabled = 3;
+        optional uint64 start_epoch_msec = 4;
+        optional uint64 end_epoch_msec = 5;
+        optional uint32 duration_sec = 6;
+        optional uint32 limit = 7;
+        repeated dimension_t dimensions = 8;
+        repeated waflz_pb.sec_rule_t rules = 100;
+        repeated waflz_pb.enforcement enforcements = 200;
+        optional waflz_pb.scope scope = 1000;
+}
+//: ----------------------------------------------------------------------------
+//: enforcer
+//: ----------------------------------------------------------------------------
+message rl_enforcer {
+        optional string id = 1;
+        optional string name = 2;
+        optional string type = 3;
+        optional string customer_id = 4;
+        optional string enabled_date = 5;
+        repeated rl_tuple tuples = 6;
+}
+//: ----------------------------------------------------------------------------
+//: rl_event
+//: ----------------------------------------------------------------------------
+message rl_event {
+        optional waflz_pb.request_info req_info = 1;
+        optional rl_tuple tuple = 2;
+        optional waflz_pb.enforcement enforcement = 3;
+        optional waflz_pb.sec_rule_t rule = 4;
+}
