@@ -46,14 +46,12 @@ def setup_func():
                                   '-f', l_conf_path,
                                   '-r', l_ruleset_path,
                                   '-g', l_geoip2city_path,
-                                  '-s', l_geoip2ISP_path,
-                                  '-e', 'waflz'])
+                                  '-s', l_geoip2ISP_path])
     print 'cmd: %s'%(' '.join([l_waflz_server_path,
                     '-f', l_conf_path,
                     '-r', l_ruleset_path,
                     '-g', l_geoip2city_path,
-                    '-s', l_geoip2ISP_path,
-                    '-e', 'waflz']))
+                    '-s', l_geoip2ISP_path]))
     g_server_pid = l_subproc.pid
     time.sleep(0.3)
 # ------------------------------------------------------------------------------
