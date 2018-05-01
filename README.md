@@ -83,7 +83,7 @@ Simple ways of testing against the WAF:
 
 1. For this project we will be using an example rule set from git:
    ```
-   git clone https://github.com/VerizonDigital/waf.git
+   The previous build will create a waflz_-xenial_amd64.deb package in the ~/waflz-master directory
    sudo dpkg-deb --extract waflz_-xenial_amd64.deb ~/DIRECTORY_PATH (Create your own Directory)
    
    Move into the directory you placed the WAF rule sets:
